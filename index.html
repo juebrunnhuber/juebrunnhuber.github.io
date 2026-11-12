@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bezahl-Werkstatt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: eine Spalte für Tablets. Kopf mit Team-Wahl, darunter Schritt 1 Ausprobieren, Schritt 2 Informieren, Schritt 3 Geldweg bauen */
+  --bg:#EEF2F8; --surface:#FFFFFF; --ink:#1B2333; --muted:#5A6478; --line:#D5DCE8;
+  --accent:#2E63D9; --money:#F2A516; --ok:#1E8E4E; --bad:#C62828;
+  --laden:#E2683C; --konto:#128C7E; --online:#6E4BD8;
+  --team:var(--laden);
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.55;-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
+button{font:inherit;cursor:pointer;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);padding:.6rem 1rem;min-height:48px;touch-action:manipulation}
+button:hover{border-color:var(--team)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input,select{font:inherit;padding:.55rem .7rem;border:2px solid var(--line);border-radius:12px;width:100%;background:#fff;color:var(--ink);min-height:48px}
+.wrap{max-width:960px;margin:0 auto;padding:1rem 16px 3rem;display:grid;gap:1.4rem}
+header.top{display:grid;gap:.8rem}
+header.top h1{font-size:2.2rem}
+header.top p{margin:0;color:var(--muted)}
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem}
+.teams button{display:flex;flex-direction:column;align-items:flex-start;border-width:3px;text-align:left}
+.teams button b{font-family:var(--display);font-size:1.25rem}
+.teams button small{color:var(--muted)}
+.teams button[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,#fff)}
+.card{background:var(--surface);border-radius:20px;padding:1.3rem 1.4rem;border:1px solid var(--line);display:grid;gap:.9rem}
+.step-label{justify-self:start;background:var(--team);color:#fff;font-family:var(--display);border-radius:999px;padding:.35rem 1.2rem;font-size:1.35rem;font-weight:600}
+.card h2{font-size:1.6rem}
+.hint{color:var(--muted);margin:0}
+.tasks{background:color-mix(in srgb,var(--team) 7%,#fff);border:2px solid color-mix(in srgb,var(--team) 35%,#fff);border-radius:16px;padding:.9rem 1.1rem}
+.tasks b{font-family:var(--display);font-weight:500;font-size:1.1rem}
+.tasks ol{margin:.4rem 0 0;padding-left:1.4rem;display:grid;gap:.3rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap}
+.center{justify-content:center}
+.btn-main{background:var(--team);border-color:var(--team);color:#fff;font-weight:700}
+.btn-main:hover{filter:brightness(1.08);border-color:var(--team)}
+.pill{display:inline-block;font-size:.85rem;border-radius:999px;padding:.1rem .65rem;background:#F1F3F8;color:var(--muted);font-family:var(--body);font-weight:600}
+.scene-wrap{max-width:620px;width:100%;margin:0 auto}
+.stage-box{border-radius:18px;padding:1.1rem;background:#F7F4EF;border:1px solid var(--line);display:grid;gap:.8rem}
+.stage-title{font-family:var(--display);font-size:1.1rem;display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.product{display:grid;justify-items:center;gap:.1rem;background:#fff;border-radius:18px;padding:1rem;border:2px dashed var(--line);text-align:center}
+.product .big{font-size:5rem;line-height:1.1}
+.product .pname{font-family:var(--display);font-size:1.5rem}
+.product .price{font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+.terminal{background:#2A2F3A;border-radius:20px;padding:14px;width:100%;max-width:340px;margin:0 auto}
+.screen{background:#CFE8D5;color:#14341F;border-radius:10px;min-height:104px;padding:.7rem .8rem;font-family:"Courier New",monospace;font-weight:700;font-size:1.05rem;white-space:pre-line}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.keypad button{background:#454C5B;color:#fff;border:none;font-size:1.2rem;font-weight:700}
+.tbtn{width:100%;margin-top:10px;background:#454C5B;color:#fff;border:none;font-weight:700}
+.wallet{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+.wallet button{background:#FFF6DF;border-color:var(--money);font-weight:700;font-variant-numeric:tabular-nums;min-width:76px}
+.receipt{background:#fff;border:1px dashed #999;font-family:"Courier New",monospace;padding:.5rem .8rem;white-space:pre-line;font-size:.95rem;width:max-content;max-width:100%;margin:0 auto}
+.phone{background:#1B2333;border-radius:32px;padding:12px;max-width:400px;margin:0 auto}
+.app{background:#fff;border-radius:24px;overflow:hidden;min-height:440px}
+.app-head{background:var(--konto);color:#fff;padding:.8rem 1rem}
+.app-head small{opacity:.9}
+.app-tabs{display:flex}
+.app-tabs button{flex:1;border:none;border-bottom:4px solid transparent;border-radius:0;background:#F3F6F6;font-weight:700}
+.app-tabs button[aria-pressed="true"]{border-bottom-color:var(--konto);background:#fff}
+.app-body{padding:.9rem;display:grid;gap:.6rem}
+.app-body label{font-size:.88rem;color:var(--muted);display:grid;gap:.15rem}
+.tx{display:flex;justify-content:space-between;gap:.5rem;padding:.6rem .5rem;border:none;border-bottom:1px solid #EDF0F4;background:none;border-radius:10px;text-align:left;width:100%}
+.tx .neg{color:var(--bad);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tx .pos{color:var(--ok);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tx small{display:block;color:var(--muted)}
+.shopwin{background:#fff;border-radius:18px;border:1px solid var(--line);overflow:hidden}
+.shopbar{background:var(--online);color:#fff;padding:.7rem 1rem;font-family:var(--display);display:flex;justify-content:space-between;font-size:1.1rem}
+.shopbody{padding:1rem;display:grid;gap:.7rem}
+.prodpick{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.prodpick button{display:grid;justify-items:center;padding:.8rem}
+.prodpick button .big{font-size:3.6rem;line-height:1.1}
+.prodpick button[aria-pressed="true"]{border-color:var(--team);background:color-mix(in srgb,var(--team) 9%,#fff);border-width:3px}
+.payopt{display:flex;align-items:center;gap:.7rem;border:2px solid var(--line);border-radius:14px;padding:.6rem .8rem;background:#fff;text-align:left;width:100%}
+.payopt[aria-pressed="true"]{border-color:var(--online);background:#F3EFFF}
+.payopt.off{opacity:.65}
+.payopt .ic{font-size:1.6rem}
+.pp-window{border:2px solid var(--online);border-radius:16px;padding:.9rem;background:#FAF8FF;display:grid;gap:.6rem}
+.ccard{background:#4B3FB0;color:#fff;border-radius:16px;padding:.9rem 1.1rem;max-width:320px;font-variant-numeric:tabular-nums}
+.ok-msg{background:#E3F4EA;color:#14532D;border-radius:14px;padding:.7rem .9rem;font-weight:600}
+.info-msg{background:#EAF0FD;color:#1C3E8A;border-radius:14px;padding:.7rem .9rem}
+.err{background:#FDECEC;color:var(--bad);border:2px solid var(--bad);border-radius:14px;padding:.7rem .9rem;font-weight:700}
+.infos{display:grid;gap:1.6rem}
+.payblock{display:grid;gap:.7rem;border-top:3px solid color-mix(in srgb,var(--team) 30%,#fff);padding-top:1.1rem}
+.payblock:first-child{border-top:none;padding-top:0}
+.payblock h3{font-size:1.4rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.pic{background:#fff;border:1px solid var(--line);border-radius:16px;padding:.5rem;display:grid;gap:.3rem;max-width:520px;width:100%;margin:0 auto}
+.pic svg{width:100%;height:auto;display:block}
+.pic small{color:var(--muted);text-align:center}
+.itext{font-size:1.05rem;max-width:70ch}
+.itext p{margin:0 0 .7rem}
+.itext p:last-child{margin-bottom:0}
+.locked{border:2px dashed var(--line);border-radius:14px;padding:.9rem;color:var(--muted);text-align:center}
+.linkish{background:none;border:none;color:var(--accent);text-decoration:underline;padding:0;min-height:0}
+.paytabs{display:flex;gap:.6rem;flex-wrap:wrap}
+.paytabs button[aria-pressed="true"]{background:var(--team);color:#fff;border-color:var(--team)}
+.gstage{position:relative;background:#F4F7FC;border:1px solid var(--line);border-radius:18px;padding:1.3rem .8rem 1rem;display:flex;justify-content:space-around;gap:.5rem;min-height:180px;align-items:flex-start}
+.actor{display:flex;flex-direction:column;align-items:center;gap:.25rem;width:150px;text-align:center}
+.actor .av{width:88px;height:88px;border-radius:50%;background:#fff;border:3px solid var(--line);display:grid;place-items:center;font-size:2.6rem;transition:transform .4s,border-color .4s}
+.actor .av svg{width:62%;height:62%}
+.actor span{font-weight:700;font-size:.95rem;line-height:1.2}
+.actor.active .av{border-color:var(--team);transform:scale(1.1)}
+.token{position:absolute;font-size:2.6rem;pointer-events:none;left:0;top:0;opacity:0;z-index:3}
+.caption{min-height:4.2rem;border-radius:16px;background:#fff;border:2px solid var(--team);padding:.7rem 1rem;display:flex;gap:.8rem;align-items:center}
+.caption .num{background:var(--team);color:#fff;border-radius:999px;min-width:2.3rem;height:2.3rem;display:grid;place-items:center;font-family:var(--display);flex:none}
+.caption .ex{font-weight:700;display:block}
+.caption .q{display:block;color:var(--muted);font-size:.92rem;font-style:italic}
+.caption.bad{border-color:var(--bad);color:var(--bad)}
+.caption.bad .num{background:var(--bad)}
+.bgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1rem}
+@media (max-width:820px){.bgrid{grid-template-columns:1fr}}
+.slots{display:grid;gap:.6rem}
+.slotrow{display:grid;grid-template-columns:5.8rem 1fr;align-items:stretch;gap:.5rem}
+.slotrow .lab{font-family:var(--display);display:flex;align-items:center;color:var(--muted);font-size:1.05rem}
+.slot{min-height:4rem;border:2px dashed #AAB5C8;border-radius:14px;padding:.3rem;display:flex;align-items:stretch;background:#FBFCFE}
+.slot.over,.bank.over{border-color:var(--team);background:color-mix(in srgb,var(--team) 8%,#fff)}
+.slot.right{border-style:solid;border-color:var(--ok);background:#EEF8F2}
+.slot.wrong{border-style:solid;border-color:var(--bad);background:#FDF0F0}
+.slot.empty-bad{border-color:var(--bad);background:#FFF5F5}
+.bank{border:2px dashed var(--line);border-radius:16px;padding:.7rem;display:flex;flex-direction:column;gap:.6rem;min-height:120px;background:#FFFDF8}
+.bank h3{font-size:1.05rem}
+.bubble{position:relative;background:#fff;border:2px solid #8C98AE;border-radius:14px;padding:.55rem .8rem;font-size:.97rem;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;width:100%;line-height:1.4}
+.bubble::after{content:"";position:absolute;left:18px;bottom:-9px;border:8px solid transparent;border-top-color:#8C98AE;border-bottom:0}
+.slot .bubble::after{display:none}
+.bubble.sel{border-color:var(--team);box-shadow:0 0 0 4px color-mix(in srgb,var(--team) 30%,transparent)}
+.bubble.dragging{opacity:.35}
+.ghost{position:fixed;z-index:50;pointer-events:none;opacity:.92;transform:rotate(-2deg);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.controls{display:flex;gap:.6rem;flex-wrap:wrap}
+.present-only{display:none!important}
+body.present .hide-present{display:none!important}
+body.present .present-only{display:flex!important}
+body.present .wrap{max-width:none;padding:1rem 2rem}
+body.present .gstage{min-height:300px;padding:2rem 1rem}
+body.present .actor{width:230px}
+body.present .actor .av{width:150px;height:150px;font-size:4.4rem}
+body.present .actor span{font-size:1.3rem}
+body.present .token{font-size:4rem}
+body.present .caption{font-size:1.5rem;min-height:5.5rem}
+body.present .caption .q{font-size:1.05rem}
+.present-bar{gap:.6rem;flex-wrap:wrap;align-items:center}
+.present-bar h2{font-size:1.9rem;flex:1;min-width:240px}
+.present-bar select{width:auto;max-width:260px}
+.present-pic{gap:1.2rem;align-items:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:.7rem 1.1rem;flex-wrap:wrap}
+.present-pic svg{width:min(440px,90vw);height:auto;flex:none}
+.present-pic p{font-size:1.3rem;margin:0;flex:1;min-width:220px}
+.party{position:fixed;inset:0;pointer-events:none;z-index:100;overflow:hidden}
+.party i{position:absolute;top:-30px;display:block}
+.party .pop{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-weight:600;font-size:clamp(2rem,7vw,4rem);color:var(--team);background:#fff;border:4px solid var(--team);border-radius:24px;padding:.4rem 1.4rem;white-space:nowrap}
+footer{color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top hide-present">
+    <h1>Bezahl-Werkstatt</h1>
+    <p>Wählt euer Team. Arbeitet die drei Schritte von oben nach unten durch.</p>
+    <div class="teams" id="teams" role="group" aria-label="Team wählen"></div>
+  </header>
+
+  <section class="card hide-present" id="explore">
+    <span class="step-label">Schritt 1 · Ausprobieren</span>
+    <h2 id="exploreTitle"></h2>
+    <div class="tasks" id="tasks"></div>
+    <div class="scene-wrap" id="sceneArea"></div>
+  </section>
+
+  <section class="card hide-present" id="inform">
+    <span class="step-label">Schritt 2 · Informieren</span>
+    <h2>Was habt ihr gerade gemacht?</h2>
+    <p class="hint">Lest die Texte zu euren zwei Zahlungsarten genau. Tragt das Wichtigste in eure Vergleichstabelle ein.</p>
+    <div class="infos" id="infoArea"></div>
+  </section>
+
+  <section class="card" id="builder">
+    <span class="step-label hide-present">Schritt 3 · Geldweg bauen</span>
+    <h2 class="hide-present">Wie fließen Geld und Ware?</h2>
+    <div class="tasks hide-present"><b>So geht's:</b><ol>
+      <li>Wählt eine Zahlungsart.</li>
+      <li>Zieht die Sprechblasen in die richtige Reihenfolge. Oder: Blase antippen, dann Feld antippen. Vorsicht: Eine Blase passt nicht.</li>
+      <li>Drückt auf „Prüfen“. Rote Felder stimmen noch nicht.</li>
+      <li>Drückt auf „Abspielen“ und schaut euch den Geldweg an.</li>
+      <li>Wenn alles stimmt: „Präsentieren“. Macht das für beide Zahlungsarten.</li></ol></div>
+    <div class="paytabs hide-present" id="paytabs" role="group" aria-label="Zahlungsart wählen"></div>
+    <div class="present-bar present-only">
+      <h2 id="presentTitle"></h2>
+      <button class="btn-main" id="nextBtn">Start ▶</button>
+      <select id="voiceSel" aria-label="Stimme wählen"></select>
+      <button id="endPresent">Beenden</button>
+    </div>
+    <div class="present-pic present-only" id="presentPic"></div>
+    <div class="gstage" id="gstage"></div>
+    <div class="caption" id="caption"></div>
+    <div class="bgrid hide-present">
+      <div style="display:grid;gap:.8rem;align-content:start">
+        <div class="slots" id="slots"></div>
+        <div class="controls">
+          <button id="checkBtn">Prüfen</button>
+          <button id="playBtn">Abspielen</button>
+          <button class="btn-main" id="presentBtn">Präsentieren</button>
+          <button id="resetBtn">Zurücksetzen</button>
+        </div>
+        <div id="feedback" aria-live="polite"></div>
+      </div>
+      <div class="bank" id="bank"><h3>Sprechblasen</h3></div>
+    </div>
+  </section>
+
+  <footer class="hide-present">Übungsumgebung für den Unterricht. Alle Läden, Shops, Banken, Namen und Kontodaten sind erfunden. Die Bilder sind Zeichnungen und zeigen keine echten Karten oder Marken.</footer>
+</div>
+
+<script>
+/* ---------- Symbole (eigene Zeichnungen) ---------- */
+const ICON={
+  kasse:`<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="6" width="22" height="12" rx="2" fill="#3C4A5E"/><rect x="25" y="9" width="16" height="6" rx="1" fill="#9FE3B0"/><path d="M10 22h44l4 22H6z" fill="#B5793A"/><g fill="#F3E6CF"><rect x="14" y="26" width="7" height="5" rx="1"/><rect x="23" y="26" width="7" height="5" rx="1"/><rect x="32" y="26" width="7" height="5" rx="1"/><rect x="41" y="26" width="7" height="5" rx="1"/><rect x="13" y="34" width="7" height="5" rx="1"/><rect x="22" y="34" width="7" height="5" rx="1"/><rect x="31" y="34" width="7" height="5" rx="1"/><rect x="40" y="34" width="9" height="5" rx="1"/></g><rect x="4" y="44" width="56" height="14" rx="2" fill="#8E5A28"/><rect x="26" y="49" width="12" height="3" rx="1.5" fill="#E2B84C"/><rect x="50" y="12" width="3" height="12" fill="#3C4A5E"/><circle cx="51.5" cy="11" r="3" fill="#C62828"/></svg>`,
+  terminal:`<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="2" width="20" height="14" rx="2" fill="#2E63D9"/><rect x="25" y="5" width="6" height="4" rx="1" fill="#E2B84C"/><rect x="14" y="10" width="36" height="52" rx="7" fill="#2A2F3A"/><rect x="19" y="15" width="26" height="14" rx="2" fill="#9FE3B0"/><g fill="#5B6476"><rect x="19" y="33" width="7" height="5" rx="1.5"/><rect x="28.5" y="33" width="7" height="5" rx="1.5"/><rect x="38" y="33" width="7" height="5" rx="1.5"/><rect x="19" y="40.5" width="7" height="5" rx="1.5"/><rect x="28.5" y="40.5" width="7" height="5" rx="1.5"/><rect x="38" y="40.5" width="7" height="5" rx="1.5"/><rect x="28.5" y="48" width="7" height="5" rx="1.5"/></g><rect x="19" y="48" width="7" height="5" rx="1.5" fill="#C62828"/><rect x="38" y="48" width="7" height="5" rx="1.5" fill="#1E8E4E"/></svg>`
+};
+/* ---------- Bilder zu jeder Zahlungsart (Zeichnungen) ---------- */
+const IMG={
+bar:`<svg viewBox="0 0 320 170" role="img" aria-label="Euro-Scheine und Münzen"><rect width="320" height="170" rx="12" fill="#EFF5EC"/>
+<g transform="rotate(-8 110 80)"><rect x="35" y="35" width="160" height="80" rx="6" fill="#F0B3AE" stroke="#B5635C" stroke-width="2"/><text x="50" y="68" font-family="Arial" font-weight="700" font-size="26" fill="#8A3B34">10</text><text x="150" y="105" font-family="Arial" font-size="11" fill="#8A3B34">EURO</text><circle cx="160" cy="62" r="14" fill="#F7D3CF"/></g>
+<rect x="60" y="60" width="170" height="85" rx="6" fill="#A9CBEA" stroke="#4A7FB3" stroke-width="2"/><text x="74" y="96" font-family="Arial" font-weight="700" font-size="30" fill="#24507E">20</text><text x="74" y="132" font-family="Arial" font-size="12" fill="#24507E">EURO</text><path d="M130 75h55v55h-55z" fill="#C9DEF2"/><path d="M140 125V95l17-14 17 14v30" fill="none" stroke="#4A7FB3" stroke-width="3"/><circle cx="205" cy="102" r="13" fill="#D9E8F6" stroke="#4A7FB3"/>
+<circle cx="262" cy="70" r="27" fill="#C3C8D0" stroke="#8E949C" stroke-width="2"/><circle cx="262" cy="70" r="18" fill="#E2B84C"/><text x="262" y="78" text-anchor="middle" font-family="Arial" font-weight="700" font-size="20" fill="#7A5A10">2</text>
+<circle cx="275" cy="128" r="22" fill="#E2B84C" stroke="#A88426" stroke-width="2"/><circle cx="275" cy="128" r="14" fill="#C3C8D0"/><text x="275" y="135" text-anchor="middle" font-family="Arial" font-weight="700" font-size="17" fill="#555">1</text>
+<circle cx="236" cy="145" r="15" fill="#E8C35A" stroke="#A88426" stroke-width="2"/><text x="236" y="150" text-anchor="middle" font-family="Arial" font-weight="700" font-size="12" fill="#7A5A10">50</text></svg>`,
+giro:`<svg viewBox="0 0 320 170" role="img" aria-label="Bankkarte mit Chip und Kartenlesegerät"><rect width="320" height="170" rx="12" fill="#EEF2FA"/>
+<rect x="18" y="40" width="160" height="100" rx="10" fill="#1F4E9C"/><rect x="34" y="68" width="30" height="23" rx="4" fill="#E2B84C"/><path d="M34 79h30M49 68v23" stroke="#B08A2A" stroke-width="1.5"/><g fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M80 70a10 10 0 0 1 0 18"/><path d="M86 65a17 17 0 0 1 0 28"/><path d="M92 60a24 24 0 0 1 0 38"/></g><text x="110" y="60" font-family="Arial" font-weight="700" font-size="12" fill="#fff">BANKKARTE</text><text x="34" y="113" font-family="Courier New" font-weight="700" font-size="12" fill="#fff">DE•• •••• 1234</text><text x="34" y="130" font-family="Arial" font-size="10" fill="#CFE0FF">JONAS WEBER</text>
+<rect x="205" y="14" width="96" height="146" rx="14" fill="#2A2F3A"/><rect x="215" y="26" width="76" height="40" rx="5" fill="#CFE8D5"/><text x="253" y="43" text-anchor="middle" font-family="Courier New" font-weight="700" font-size="12" fill="#14341F">12,99 EUR</text><text x="253" y="58" text-anchor="middle" font-family="Courier New" font-size="7.5" fill="#14341F">Karte vorhalten</text>
+<g fill="#5B6476"><rect x="217" y="76" width="20" height="13" rx="3"/><rect x="243" y="76" width="20" height="13" rx="3"/><rect x="269" y="76" width="20" height="13" rx="3"/><rect x="217" y="95" width="20" height="13" rx="3"/><rect x="243" y="95" width="20" height="13" rx="3"/><rect x="269" y="95" width="20" height="13" rx="3"/><rect x="243" y="114" width="20" height="13" rx="3"/></g><rect x="217" y="114" width="20" height="13" rx="3" fill="#C62828"/><rect x="269" y="114" width="20" height="13" rx="3" fill="#1E8E4E"/>
+<g fill="none" stroke="#2E63D9" stroke-width="2.5" stroke-linecap="round"><path d="M188 72a8 8 0 0 1 0 14"/><path d="M194 66a16 16 0 0 1 0 26"/></g></svg>`,
+ueb:`<svg viewBox="0 0 320 170" role="img" aria-label="SEPA-Überweisungsformular"><rect width="320" height="170" rx="12" fill="#FFF8F4"/><rect x="14" y="10" width="292" height="150" rx="4" fill="#FDE3D8" stroke="#D9826A" stroke-width="2"/>
+<text x="24" y="28" font-family="Arial" font-weight="700" font-size="13" fill="#9A3F28">SEPA-Überweisung</text><text x="296" y="28" text-anchor="end" font-family="Arial" font-size="9" fill="#9A3F28">Übungsbank</text>
+<g font-family="Arial" font-size="7.5" fill="#9A3F28"><text x="24" y="42">Angaben zum Zahlungsempfänger: Name</text><text x="24" y="66">IBAN</text><text x="200" y="66">Betrag: Euro, Cent</text><text x="24" y="90">Verwendungszweck</text><text x="24" y="114">Angaben zum Kontoinhaber: Name</text><text x="24" y="138">Datum</text><text x="130" y="138">Unterschrift</text></g>
+<g fill="#fff" stroke="#E0A28E"><rect x="24" y="45" width="272" height="13"/><rect x="24" y="69" width="168" height="13"/><rect x="200" y="69" width="96" height="13"/><rect x="24" y="93" width="272" height="13"/><rect x="24" y="117" width="272" height="13"/><rect x="24" y="141" width="96" height="13"/><rect x="130" y="141" width="166" height="13"/></g>
+<g font-family="Segoe Print,Comic Sans MS,cursive" font-size="10" fill="#1E3A8A"><text x="28" y="55">Kickerkiste24 GmbH</text><text x="28" y="79">DE00 1234 5678 9012 3456 78</text><text x="232" y="79">19,90</text><text x="28" y="103">Fußball, Best. 2611</text><text x="28" y="127">Jonas Weber</text><text x="28" y="151">08.11.26</text></g><path d="M140 151c8-10 14 4 22-4s10 6 18-2 8 4 14 0" fill="none" stroke="#1E3A8A" stroke-width="1.5"/></svg>`,
+last:`<svg viewBox="0 0 320 170" role="img" aria-label="Unterschriebenes SEPA-Lastschriftmandat"><rect width="320" height="170" rx="12" fill="#EAF6F4"/><rect x="40" y="8" width="240" height="156" rx="4" fill="#fff" stroke="#9CC9C2" stroke-width="2"/>
+<text x="54" y="28" font-family="Arial" font-weight="700" font-size="13" fill="#0C5E55">SEPA-Lastschriftmandat</text><text x="262" y="30" text-anchor="end" font-size="16">⚽</text>
+<g font-family="Arial" font-size="8" fill="#334"><text x="54" y="44">Zahlungsempfänger: FC Musterdorf e.V.</text><text x="54" y="56">Gläubiger-ID: DE00ZZZ00000000000</text><text x="54" y="68">Mandatsreferenz: MITGL-0815</text></g>
+<g stroke="#D3DAE2" stroke-width="4" stroke-linecap="round"><path d="M54 82h210"/><path d="M54 92h196"/><path d="M54 102h205"/></g>
+<g font-family="Arial" font-size="8" fill="#334"><text x="54" y="120">Kontoinhaber: Familie Weber</text><text x="54" y="132">IBAN: DE00 9876 5432 1098 7654 32</text><text x="54" y="156">Ort, Datum, Unterschrift</text></g>
+<path d="M150 154c6-14 12 6 18-4s8 8 16-2 10 6 20-4 6 6 14 2" fill="none" stroke="#1E3A8A" stroke-width="1.6"/><path d="M146 158h120" stroke="#9AA4B2"/></svg>`,
+dienst:`<svg viewBox="0 0 320 170" role="img" aria-label="Handy mit Shop-Kasse und Anmeldefenster eines Bezahldienstes"><rect width="320" height="170" rx="12" fill="#F2EEFD"/>
+<rect x="30" y="8" width="96" height="156" rx="14" fill="#1B2333"/><rect x="36" y="18" width="84" height="136" rx="8" fill="#fff"/><rect x="36" y="18" width="84" height="18" fill="#6E4BD8"/><text x="78" y="31" text-anchor="middle" font-family="Arial" font-weight="700" font-size="8" fill="#fff">StyleBox24 · Kasse</text>
+<text x="44" y="52" font-size="16">👕</text><text x="64" y="50" font-family="Arial" font-size="7.5" fill="#333">T-Shirt</text><text x="64" y="60" font-family="Arial" font-weight="700" font-size="8" fill="#333">15,00 €</text>
+<rect x="44" y="74" width="68" height="16" rx="8" fill="#6E4BD8"/><text x="78" y="85" text-anchor="middle" font-family="Arial" font-weight="700" font-size="6.5" fill="#fff">Mit Bezahldienst zahlen</text><rect x="44" y="96" width="68" height="16" rx="8" fill="#fff" stroke="#BBB"/><text x="78" y="107" text-anchor="middle" font-family="Arial" font-size="6.5" fill="#555">Kreditkarte</text>
+<path d="M126 82h30" stroke="#6E4BD8" stroke-width="3" stroke-dasharray="5 4"/><path d="M152 76l8 6-8 6" fill="#6E4BD8"/>
+<rect x="164" y="26" width="140" height="118" rx="12" fill="#fff" stroke="#6E4BD8" stroke-width="2"/><path d="M234 36l14 5v11c0 9-6 15-14 18-8-3-14-9-14-18V41z" fill="#6E4BD8"/><path d="M228 52l5 5 9-9" fill="none" stroke="#fff" stroke-width="2.5"/>
+<text x="234" y="84" text-anchor="middle" font-family="Arial" font-weight="700" font-size="9" fill="#333">Bezahldienst · Anmelden</text><rect x="176" y="90" width="116" height="13" rx="4" fill="#F4F4F8" stroke="#CCC"/><text x="181" y="99.5" font-family="Arial" font-size="7" fill="#777">E-Mail</text><rect x="176" y="107" width="116" height="13" rx="4" fill="#F4F4F8" stroke="#CCC"/><text x="181" y="116.5" font-family="Arial" font-size="7" fill="#777">Passwort ••••••</text><text x="234" y="136" text-anchor="middle" font-family="Arial" font-weight="700" font-size="7.5" fill="#1E8E4E">✓ Käuferschutz</text></svg>`,
+prepaid:`<svg viewBox="0 0 320 170" role="img" aria-label="Prepaid-Kreditkarte und App mit Guthaben"><rect width="320" height="170" rx="12" fill="#F2EEFD"/>
+<rect x="16" y="38" width="165" height="104" rx="11" fill="#4B3FB0"/><text x="30" y="60" font-family="Arial" font-weight="700" font-size="12" fill="#fff">PREPAID</text><rect x="30" y="70" width="30" height="22" rx="4" fill="#E2B84C"/><text x="30" y="114" font-family="Courier New" font-weight="700" font-size="13" fill="#fff">4000 1234 5678 9010</text><text x="30" y="131" font-family="Arial" font-size="9" fill="#DCD6FF">JONAS WEBER   gültig 12/28</text><circle cx="150" cy="122" r="10" fill="#F2A516" opacity=".9"/><circle cx="162" cy="122" r="10" fill="#E2683C" opacity=".8"/>
+<rect x="204" y="8" width="96" height="156" rx="14" fill="#1B2333"/><rect x="210" y="18" width="84" height="136" rx="8" fill="#fff"/><text x="252" y="38" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">Meine Prepaid-Karte</text><text x="252" y="58" text-anchor="middle" font-family="Arial" font-size="8" fill="#666">Guthaben</text><text x="252" y="78" text-anchor="middle" font-family="Arial" font-weight="700" font-size="17" fill="#1B2333">20,00 €</text><rect x="222" y="92" width="60" height="18" rx="9" fill="#6E4BD8"/><text x="252" y="104" text-anchor="middle" font-family="Arial" font-weight="700" font-size="8" fill="#fff">+ Aufladen</text><text x="252" y="128" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">Ausgeben nur bis</text><text x="252" y="138" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">zum Guthaben</text></svg>`
+};
+
+const TEAMS={
+  laden:{name:"Team Laden",sub:"Barzahlung · Girocard/kontaktlos",color:"var(--laden)",pays:["bar","giro"],
+    title:"Station Laden: Bezahlen an der Kasse",
+    tasks:["Jonas Weber kauft im Elektromarkt eine Handyhülle für 12,99 €. Schaut sie euch an.",
+      "Tippt auf „Bar bezahlen“. Gebt so lange Scheine und Münzen aus Jonas' Geldbeutel, bis genug Geld da ist. Wie viel Rückgeld bekommt Jonas?",
+      "Tippt auf „Girocard mit PIN“. Steckt die Karte ein und tippt die PIN 4682 ein. Lest genau, was auf dem Display steht.",
+      "Tippt auf „Kontaktlos“. Haltet die Karte oder das Handy an das Gerät. Was ist anders als bei der PIN?",
+      "Geht danach zu Schritt 2 und lest, was ihr gerade gemacht habt."]},
+  konto:{name:"Team Konto",sub:"Überweisung · Lastschrift",color:"var(--konto)",pays:["ueb","last"],
+    title:"Station Konto: Jonas' Banking-App",
+    tasks:["Das ist die Banking-App von Jonas Weber. Schaut zuerst oben: Wie viel Geld ist auf seinem Konto?",
+      "Bleibt bei „Überweisen“ und wählt ein Produkt, das Jonas im Fußball-Onlineshop kaufen will. Schaut euch die Felder an: Wer bekommt das Geld? Was ist die IBAN? Wofür ist der Verwendungszweck?",
+      "Tippt auf „Weiter“ und gebt die Überweisung frei. Achtet auf den Kontostand und auf den roten Hinweis.",
+      "Macht noch eine Überweisung mit einem anderen Produkt, diesmal mit Haken bei „Echtzeitüberweisung“. Was ändert sich?",
+      "Wechselt oben zu „Umsätze“. Findet ihr eure Überweisungen? Wer holt sich jeden Monat Geld von Jonas' Konto? Tippt auf diese Buchung.",
+      "Findet heraus: Kann Jonas sich das Geld zurückholen? Tippt auf „Lastschrift zurückgeben“."]},
+  online:{name:"Team Online",sub:"Onlinebezahldienst · Prepaid-Kreditkarte",color:"var(--online)",pays:["dienst","prepaid"],
+    title:"Station Online: Die Kasse im Modeshop",
+    tasks:["Jonas Weber möchte im Onlineshop StyleBox24 einkaufen. Das T-Shirt für 15 € liegt schon im Warenkorb.",
+      "Wählt „Onlinebezahldienst“. Lest den roten Hinweis: Wer darf so ein Konto haben? Bezahlt dann.",
+      "Wählt „Prepaid-Kreditkarte“ und bezahlt das T-Shirt. Wie viel Guthaben bleibt auf der Karte?",
+      "Wählt jetzt oben die Sneaker für 25 € und bezahlt noch einmal mit der Prepaid-Karte. Was passiert und warum? Was passiert, wenn ihr mehrmals aufladen wollt?",
+      "Tippt auch auf „SEPA-Lastschrift“ und „Barzahlung“. Was steht dort?"]}
+};
+/* Infotexte für Schritt 2 (Fließtext) */
+const TXT={
+  bar:["Bargeld sind Scheine und Münzen. An der Kasse gibst du das Geld der Kassiererin direkt in die Hand. Du bekommst Wechselgeld und einen Kassenbon zurück.",
+    "Bar bezahlen kannst du im Laden, am Kiosk oder auf dem Flohmarkt. Im Onlineshop geht das nicht. Du brauchst dafür kein Bankkonto, und es gibt auch kein Mindestalter.",
+    "Der Verkäufer hat sein Geld sofort, und du hast sofort deine Ware. Heb den Kassenbon gut auf: Hat die Ware einen Mangel, zeigst du ihn im Laden vor. Aber Vorsicht: Verlierst du Bargeld, ist es weg."],
+  giro:["Die Girocard ist die Karte zu deinem Girokonto bei der Bank. An der Kasse steckst du sie in das Kartenlesegerät und tippst deine geheime PIN ein. Noch schneller geht es kontaktlos: Du hältst die Karte oder dein Handy kurz an das Gerät. Bei kleinen Beträgen brauchst du dann meist keine PIN.",
+    "In wenigen Sekunden fragt das Gerät bei deiner Bank nach, ob genug Geld auf deinem Konto ist. Dann bucht die Bank das Geld von deinem Konto ab und schickt es an den Laden. Der Laden hat sein Geld also sofort sicher.",
+    "So kannst du fast überall im Laden bezahlen, im Onlineshop aber meistens nicht. Ein Girokonto mit Karte bekommen Jugendliche, wenn die Eltern zustimmen. Fürs Handy brauchst du zusätzlich eine Bezahl-App. Ist die Karte weg, lass sie sofort sperren: Sperr-Notruf 116 116."],
+  ueb:["Bei einer Überweisung gibst du deiner Bank einen Auftrag: „Schick Geld von meinem Konto auf dieses andere Konto.“ Dafür trägst du in der Banking-App (oder auf einem Überweisungsschein) den Namen des Empfängers, seine IBAN, den Betrag und den Verwendungszweck ein. Die IBAN ist die Nummer seines Kontos.",
+    "So bezahlt man Rechnungen, schickt Freunden Geld oder bezahlt im Onlineshop per Vorkasse. Vorkasse heißt: Du bezahlst zuerst, und erst danach wird die Ware verschickt. Du brauchst ein Girokonto mit Online-Banking.",
+    "Normalerweise ist das Geld spätestens am nächsten Bankarbeitstag beim Empfänger, bei einer Echtzeitüberweisung schon nach etwa 10 Sekunden. Aber Achtung: Ist das Geld einmal überwiesen, kann die Bank es meist nicht mehr zurückholen. Das geht nur, wenn der Empfänger zustimmt."],
+  last:["Bei einer Lastschrift ist es genau andersherum als bei der Überweisung: Nicht du schickst das Geld, sondern der Empfänger holt es sich von deinem Konto. Dafür musst du ihm vorher die Erlaubnis geben, mit deiner Unterschrift auf dem SEPA-Lastschriftmandat. Bei Jugendlichen unterschreiben die Eltern.",
+    "Das ist praktisch für Zahlungen, die immer wieder kommen: den Mitgliedsbeitrag im Sportverein, den Handyvertrag oder ein Abo. Auch in vielen Onlineshops kann man per Lastschrift bezahlen. Du brauchst dafür ein Girokonto und deine IBAN. Der Empfänger holt sich das Geld zum vereinbarten Termin, zum Beispiel jeden Monat am 1.",
+    "Wurde falsch abgebucht? Dann kannst du die Lastschrift 8 Wochen lang ohne Begründung zurückgeben und bekommst dein Geld wieder. Eine Rechnung, die stimmt, musst du aber trotzdem bezahlen."],
+  dienst:["Ein Onlinebezahldienst wie PayPal oder Wero steht wie ein Vermittler zwischen dir und dem Shop. An der Kasse im Onlineshop wählst du den Dienst und meldest dich mit deiner E-Mail-Adresse und deinem Passwort an. Der Dienst bezahlt den Shop sofort und holt sich das Geld dann von deinem Bankkonto. Der Shop sieht deine Bankdaten dabei nicht.",
+    "Das geht in vielen Onlineshops, manche Dienste funktionieren auch im Laden mit dem Handy. Du brauchst ein Konto beim Bezahldienst, das mit deinem Bankkonto verbunden ist. Aber: Ein PayPal-Konto darf man erst ab 18 Jahren haben.",
+    "Der große Vorteil ist der Käuferschutz: Kommt deine Ware nicht an oder ist sie ganz anders als beschrieben, bekommst du dein Geld meist zurück."],
+  prepaid:["Erwachsene bezahlen oft mit einer Kreditkarte. Damit kaufen sie einen ganzen Monat lang ein, ohne dass sofort Geld abgebucht wird. Sie machen also zuerst Schulden. Am Monatsende wird dann alles auf einmal vom Konto abgebucht. Weil man Jugendlichen noch nicht zutraut, solche Schulden im Griff zu behalten, bekommen sie keine normale Kreditkarte.",
+    "Für Jugendliche gibt es deshalb die Prepaid-Kreditkarte. Beim Bezahlen funktioniert sie fast genauso wie eine Kreditkarte, das Prinzip ist aber anders. „Prepaid“ heißt „vorher bezahlt“: Zuerst laden du oder deine Eltern Geld auf die Karte, zum Beispiel 20 €. Dieses Guthaben ist auf der Karte gespeichert. Mit jedem Einkauf wird es weniger. Steht es bei 0 €, kannst du nichts mehr kaufen. Schulden machen geht also nicht.",
+    "Bezahlen kannst du damit online und im Laden, überall wo Visa oder Mastercard angenommen wird. Online tippst du Kartennummer, Ablaufdatum und Prüfnummer ein. Der Shop bekommt sein Geld sofort. Wirst du betrogen, kann die Bank manchmal helfen, sicher ist das aber nicht."]
+};
+/* steps: [von, nach, Symbol, Sprechblase (Ich-Form), Erklärsatz (wird angezeigt und in der Präsentation vorgelesen)] */
+const PAY={
+  bar:{name:"Barzahlung",ex:"z. B. Münzen und Scheine beim Bäcker, am Kiosk",picText:"So sieht Bargeld aus: Scheine und Münzen.",
+    actors:[["jonas","🧑","Jonas"],["kasse",ICON.kasse,"Kasse im Laden"]],
+    steps:[["kasse","jonas","🧾","Die Kassiererin scannt meine Handyhülle. Auf der Kasse steht: 12,99 €.","Die Kasse zeigt Jonas, wie viel er bezahlen muss: 12,99 Euro."],
+      ["jonas","kasse","💶","Ich nehme einen 20-Euro-Schein aus meinem Geldbeutel und gebe ihn der Kassiererin.","Jonas gibt das Bargeld direkt an den Laden. Eine Bank braucht er dafür nicht."],
+      ["kasse","jonas","🪙","Die Kassiererin gibt mir 7,01 € Wechselgeld und den Kassenbon zurück.","Jonas bekommt sein Wechselgeld und den Kassenbon. Den Bon hebt er auf, falls die Ware einen Mangel hat."],
+      ["kasse","jonas","📦","Ich nehme die Handyhülle sofort mit. Geld und Ware haben gleichzeitig den Besitzer gewechselt.","Der Laden übergibt die Ware. Geld und Ware haben sofort den Besitzer gewechselt."]],
+    distractor:"Der Betrag wird am nächsten Tag automatisch von meinem Konto abgebucht."},
+  giro:{name:"Girocard / kontaktlos (NFC)",ex:"z. B. Sparkassen-Card, Apple Pay",picText:"Bankkarte mit Chip und Kontaktlos-Zeichen, daneben ein Kartenlesegerät.",
+    actors:[["jonas","🧑","Jonas"],["terminal",ICON.terminal,"Kartenlesegerät im Laden"],["bank","🏦","Jonas' Bank"]],
+    steps:[["jonas","terminal","💳","Ich stecke meine Girocard ins Kartenlesegerät und gebe meine geheime PIN ein. Kontaktlos halte ich Karte oder Handy nur kurz davor.","Jonas bezahlt mit seiner Karte. Die geheime PIN zeigt, dass die Karte wirklich ihm gehört."],
+      ["terminal","bank","❓","Das Kartenlesegerät fragt über das Internet bei meiner Bank nach: Ist genug Geld auf Jonas' Konto?","Das Kartenlesegerät fragt bei Jonas' Bank nach, ob genug Geld auf seinem Konto ist."],
+      ["bank","terminal","✅","Meine Bank antwortet nach wenigen Sekunden: Ja, die Zahlung ist erlaubt. Auf dem Display steht: Zahlung erfolgt.","Die Bank gibt die Zahlung frei. Auf dem Kartenlesegerät steht: Zahlung erfolgt."],
+      ["bank","terminal","💶","Die Bank bucht 12,99 € von meinem Girokonto ab und schickt das Geld an den Laden. Ich nehme die Ware mit.","Das Geld geht von Jonas' Konto an den Laden. Bargeld hat Jonas dafür nicht gebraucht."]],
+    distractor:"Ich sage der Kassiererin meine IBAN, und sie überweist das Geld später selbst."},
+  ueb:{name:"SEPA-Überweisung",ex:"z. B. Sparkasse-App, VR-BankingApp",picText:"Ein ausgefüllter Überweisungsschein. Heute macht man das meist in der Banking-App.",
+    actors:[["jonas","🧑","Jonas"],["bank","🏦","Jonas' Bank"],["shop","🏬","Empfänger (Händler)"]],
+    steps:[["jonas","bank","📝","Ich öffne meine Banking-App und trage ein: Name des Empfängers, seine IBAN, den Betrag und den Verwendungszweck. Dann gebe ich die Überweisung frei.","Jonas gibt seiner Bank den Auftrag, Geld an den Händler zu schicken."],
+      ["bank","shop","💶","Meine Bank schickt das Geld von meinem Konto auf das Konto des Händlers. Das dauert bis zum nächsten Bankarbeitstag, als Echtzeitüberweisung nur Sekunden.","Die Bank schickt das Geld von Jonas' Konto auf das Konto des Händlers."],
+      ["shop","jonas","📦","Der Händler sieht das Geld auf seinem Konto und verschickt erst dann die Ware an mich.","Erst wenn das Geld da ist, verschickt der Händler die Ware. Kommt sie nicht an, ist das Geld meistens weg."]],
+    distractor:"Der Händler holt sich das Geld selbst von meinem Konto, ich muss nichts tun."},
+  last:{name:"SEPA-Lastschrift",ex:"z. B. Monatsbeitrag Sportverein, Handyvertrag",picText:"Ein unterschriebenes SEPA-Lastschriftmandat: die Erlaubnis zum Abbuchen.",
+    actors:[["jonas","🧑","Jonas"],["verein","⚽","Fußballverein FC Musterdorf"],["bank","🏦","Jonas' Bank"]],
+    steps:[["jonas","verein","✍️","Bei der Anmeldung im Verein unterschreiben meine Eltern ein SEPA-Lastschriftmandat mit meiner IBAN. Damit darf der Verein das Geld abbuchen.","Jonas und seine Eltern erlauben dem Verein schriftlich, Geld von Jonas' Konto abzubuchen."],
+      ["verein","bank","📄","Jeden Monat schickt der Verein meiner Bank einen Auftrag: Bitte 12 € Mitgliedsbeitrag von Jonas' Konto abbuchen.","Der Verein meldet sich jeden Monat bei Jonas' Bank und holt sich den Beitrag. Jonas muss dafür nichts tun."],
+      ["bank","verein","💶","Meine Bank bucht die 12 € von meinem Konto ab und schickt sie an den Verein. Auf meinem Kontoauszug steht: Lastschrift.","Die Bank bucht das Geld ab und gibt es an den Verein weiter."],
+      ["bank","jonas","↩️","Wurde falsch abgebucht? Dann gebe ich die Lastschrift innerhalb von 8 Wochen zurück und bekomme mein Geld wieder.","Wenn etwas nicht stimmt, kann Jonas die Lastschrift zurückgeben. Dann bekommt er sein Geld zurück."]],
+    distractor:"Ich muss jeden Monat selbst daran denken, dem Verein das Geld zu überweisen."},
+  dienst:{name:"Onlinebezahldienst",ex:"z. B. PayPal, Wero",picText:"An der Shop-Kasse wählst du den Bezahldienst und meldest dich dort an.",
+    actors:[["jonas","🧑","Käufer (ab 18)"],["dienst","🛡️","Onlinebezahldienst"],["shop","👕","Modeshop"]],
+    steps:[["jonas","dienst","🔑","An der Kasse im Onlineshop klicke ich auf den Bezahldienst und melde mich dort mit meiner E-Mail-Adresse und meinem Passwort an.","Der Käufer wählt den Bezahldienst. Der Dienst steht jetzt zwischen ihm und dem Shop."],
+      ["jonas","dienst","💶","Der Bezahldienst holt sich das Geld von meinem Bankkonto, das ich vorher mit dem Dienst verbunden habe.","Der Bezahldienst holt sich das Geld vom Bankkonto des Käufers."],
+      ["dienst","shop","💶","Der Bezahldienst bezahlt den Shop sofort. Meine Bankdaten sieht der Shop dabei nicht.","Der Shop bekommt sein Geld sofort vom Bezahldienst. Die Bankdaten des Käufers bleiben geheim."],
+      ["shop","jonas","📦","Der Shop verschickt die Ware sofort. Kommt sie nicht an, hilft mir der Käuferschutz, und ich bekomme mein Geld meist zurück.","Der Shop verschickt die Ware. Kommt nichts an, schützt der Käuferschutz den Käufer."]],
+    distractor:"Ich gebe dem Shop meine IBAN und überweise das Geld selbst mit meiner Banking-App."},
+  prepaid:{name:"Prepaid-Kreditkarte",ex:"z. B. Visa Prepaid, Mastercard Prepaid",picText:"Eine Prepaid-Karte und die App, in der man das Guthaben sieht und auflädt.",
+    actors:[["jonas","🧑","Jonas"],["karte","💳","Prepaid-Kreditkarte"],["shop","👕","Modeshop"]],
+    steps:[["jonas","karte","💶","Zuerst laden meine Eltern oder ich Geld auf die Karte, zum Beispiel 20 € von meinem Taschengeld. Das Guthaben ist auf der Karte gespeichert.","Jonas lädt Guthaben auf seine Karte. Mehr als dieses Guthaben kann er nicht ausgeben."],
+      ["jonas","shop","🔢","An der Kasse im Onlineshop tippe ich die Kartennummer, das Ablaufdatum und die dreistellige Prüfnummer von der Rückseite ein.","Jonas gibt die Daten seiner Karte an der Kasse des Shops ein."],
+      ["karte","shop","💶","Die Karte bezahlt den Shop sofort, aber nur, wenn genug Guthaben drauf ist. Sonst wird die Zahlung abgelehnt, Schulden sind nicht möglich.","Das Geld geht vom Guthaben der Karte direkt an den Shop. Ist nicht genug Guthaben drauf, klappt die Zahlung nicht."],
+      ["shop","jonas","📦","Der Shop verschickt mein T-Shirt. Auf meiner Karte bleiben noch 5 € übrig.","Der Shop verschickt die Ware. Auf der Karte bleibt nur noch der Rest, so behält Jonas den Überblick."]],
+    distractor:"Wenn die Karte leer ist, kann ich trotzdem weiter einkaufen und zahle einfach später, wie bei einer normalen Kreditkarte."}
+};
+const PIN="4682";
+const $=s=>document.querySelector(s);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+let team="laden",pay="bar",unlocked={};
+const err=t=>`<div class="err">⚠️ ${t}</div>`;
+function eur(v){return v.toFixed(2).replace(".",",")+" €"}
+
+/* ---------- Vorlesen (nur in der Präsentation) mit der natürlichsten deutschen Stimme des Geräts ---------- */
+const canSpeak="speechSynthesis" in window;
+let voices=[],voiceName=store.get("bw-voice");
+function voiceScore(v){
+  const n=(v.name||"").toLowerCase();let s=0;
+  if(/premium/.test(n))s+=40;
+  if(/enhanced|erweitert|verbessert/.test(n))s+=30;
+  if(/natural|neural|online/.test(n))s+=35;
+  if(/google/.test(n))s+=50;
+  if(/anna|petra|helena|markus|yannick|viktor|katja|conrad|amala|seraphina|florian/.test(n))s+=8;
+  if(/eddy|flo|grandma|grandpa|oma|opa|reed|rocko|sandy|shelley|albert|bad news|bahh|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|whisper|wobble|zarvox|junior|fred|kathy|ralph/.test(n))s-=50;
+  if(v.localService===false)s+=3;
+  if((v.lang||"").toLowerCase()==="de-de")s+=2;
+  return s;
+}
+function loadVoices(){
+  if(!canSpeak)return;
+  voices=speechSynthesis.getVoices().filter(v=>(v.lang||"").toLowerCase().startsWith("de")).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  const sel=$("#voiceSel");
+  if(!voices.length){sel.style.display="none";return;}
+  if(!voices.some(v=>v.name===voiceName))voiceName=voices[0].name;
+  sel.style.display="";
+  sel.innerHTML=voices.map(v=>`<option value="${v.name.replace(/"/g,"&quot;")}"${v.name===voiceName?" selected":""}>🔊 ${v.name}</option>`).join("")+`<option value="__off">🔇 Nicht vorlesen</option>`;
+  if(voiceName==="__off")sel.value="__off";
+}
+if(canSpeak){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;setTimeout(loadVoices,800);}
+$("#voiceSel").onchange=e=>{voiceName=e.target.value;store.set("bw-voice",voiceName);stopSpeak();};
+function speak(text){
+  return new Promise(res=>{
+    if(!canSpeak||!document.body.classList.contains("present")||voiceName==="__off")return res();
+    try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="de-DE";u.rate=.95;
+      const v=voices.find(v=>v.name===voiceName)||voices[0];if(v){u.voice=v;u.lang=v.lang;}
+      let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,25000);speechSynthesis.speak(u);}catch(e){res();}
+  });
+}
+function stopSpeak(){if(canSpeak)try{speechSynthesis.cancel()}catch(e){}}
+
+/* ---------- Team-Wahl ---------- */
+function renderTeams(){
+  $("#teams").innerHTML=Object.entries(TEAMS).map(([k,t])=>`<button style="--c:${t.color}" aria-pressed="${k===team}" data-t="${k}"><b>${t.name}</b><small>${t.sub}</small></button>`).join("");
+  $("#teams").querySelectorAll("button").forEach(b=>b.onclick=()=>{location.hash=b.dataset.t;});
+}
+function setTeam(t){
+  if(!TEAMS[t])t="laden";team=t;pay=TEAMS[t].pays[0];
+  document.documentElement.style.setProperty("--team",TEAMS[t].color);
+  renderTeams();$("#exploreTitle").textContent=TEAMS[t].title;
+  $("#tasks").innerHTML=`<b>Eure Aufgaben:</b><ol>${TEAMS[t].tasks.map(x=>`<li>${x}</li>`).join("")}</ol>`;
+  ({laden:sceneLaden,konto:sceneKonto,online:sceneOnline})[t]();renderInfos();renderPaytabs();loadBuilder();
+}
+
+/* ---------- Schritt 2: Bilder + Fließtext ---------- */
+function renderInfos(){
+  $("#infoArea").innerHTML=TEAMS[team].pays.map(p=>{
+    const d=PAY[p];
+    const head=`<h3>${d.name} <span class="pill">${d.ex}</span></h3><div class="pic">${IMG[p]}<small>${d.picText}</small></div>`;
+    const body=unlocked[p]?`<div class="itext">${TXT[p].map(x=>`<p>${x}</p>`).join("")}</div>`
+      :`<div class="locked">Probiert <b>${d.name}</b> zuerst in Schritt 1 aus. Dann erscheint hier der Text dazu.<br><button class="linkish" data-u="${p}">Text trotzdem anzeigen</button></div>`;
+    return `<div class="payblock">${head}${body}</div>`;
+  }).join("");
+  $("#infoArea").querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>unlock(b.dataset.u));
+}
+function unlock(p){if(unlocked[p])return;unlocked[p]=true;renderInfos();}
+
+/* ---------- Station Laden ---------- */
+function sceneLaden(){
+  $("#sceneArea").innerHTML=`<div class="stage-box"><div class="stage-title"><span>Elektromarkt · Kasse 3</span><span class="pill">Übungsszene</span></div>
+    <div class="product"><span class="big">📱</span><span class="pname">Handyhülle</span><span class="price">12,99 €</span></div>
+    <p class="hint" style="text-align:center">Wie möchte Jonas bezahlen? Probiert alle drei Möglichkeiten aus.</p>
+    <div class="row center"><button data-m="bar">💶 Bar bezahlen</button><button data-m="giro">💳 Girocard mit PIN<br><small>(PIN: 4682)</small></button><button data-m="nfc">📶 Kontaktlos<br><small>(Karte oder Handy)</small></button></div>
+    <div class="terminal"><div class="screen" id="term">Zu zahlen: 12,99 EUR
+Wie möchtest du bezahlen?</div><div id="termKeys"></div></div><div id="ladenExtra" style="display:grid;gap:.6rem"></div></div>`;
+  const term=$("#term"),keys=$("#termKeys"),extra=$("#ladenExtra");
+  $("#sceneArea").querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{keys.innerHTML="";extra.innerHTML="";({bar:modeBar,giro:modeGiro,nfc:modeNfc})[b.dataset.m]();});
+  function modeBar(){
+    let given=0;term.textContent="Zu zahlen: 12,99 EUR\nGegeben:    0,00 EUR";
+    extra.innerHTML=`<p class="hint" style="text-align:center">Tippt auf Scheine und Münzen aus Jonas' Geldbeutel, bis genug Geld gegeben ist:</p><div class="wallet">${[20,10,5,2,1,.5].map(v=>`<button data-v="${v}">${v<1?"50 ct":v+" €"}</button>`).join("")}</div><div id="rc" style="display:grid;gap:.5rem"></div>`;
+    extra.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{
+      if(given>=12.99){$("#rc").firstElementChild&&$("#rc").firstElementChild.classList.contains("err")||$("#rc").insertAdjacentHTML("afterbegin",err("Jonas hat schon bezahlt. Tippt oben auf eine andere Zahlungsart."));return;}
+      given=Math.round((given+ +b.dataset.v)*100)/100;
+      term.textContent=`Zu zahlen: 12,99 EUR\nGegeben:   ${given.toFixed(2).replace(".",",").padStart(6)} EUR`;
+      if(given<12.99){term.textContent+=`\nEs fehlen: ${(12.99-given).toFixed(2).replace(".",",").padStart(6)} EUR`;}
+      else{const r=(given-12.99).toFixed(2).replace(".",",");term.textContent+=`\nRückgeld:  ${r.padStart(6)} EUR`;
+        $("#rc").innerHTML=`<div class="receipt">ELEKTROMARKT KASSE 3\nHandyhülle      12,99\nBAR             ${given.toFixed(2).replace(".",",")}\nRÜCKGELD        ${r}\nVielen Dank!</div><div class="ok-msg">Fertig! Jonas bekommt ${r} € Rückgeld. Ware und Geld haben sofort den Besitzer gewechselt.</div>`;unlock("bar");}
+    });
+  }
+  function modeGiro(){
+    term.textContent="Betrag: 12,99 EUR\nBitte Karte einstecken";
+    keys.innerHTML=`<button class="tbtn" id="ins">💳 Karte einstecken</button>`;
+    $("#ins").onclick=()=>askPin();
+    function askPin(msg){let pin="";term.textContent="Betrag: 12,99 EUR\nPIN eingeben:\n____";
+      keys.innerHTML=`<div class="keypad">${[1,2,3,4,5,6,7,8,9,"←",0,""].map(n=>n===""?"<span></span>":`<button data-k="${n}" aria-label="${n==="←"?"Löschen":n}">${n}</button>`).join("")}</div>`;
+      extra.innerHTML=msg||`<div class="info-msg" style="text-align:center">Tippt die PIN <b>4682</b> ein.</div>`;
+      keys.querySelectorAll("[data-k]").forEach(k=>k.onclick=async()=>{
+        if(k.dataset.k==="←"){pin=pin.slice(0,-1);}else{if(pin.length>=4)return;pin+=k.dataset.k;}
+        term.textContent="Betrag: 12,99 EUR\nPIN eingeben:\n"+"*".repeat(pin.length).padEnd(4,"_");
+        if(pin.length===4){
+          if(pin!==PIN){term.textContent="Falsche PIN!\nBitte erneut eingeben";await sleep(900);askPin(err("Falsche PIN! Die richtige PIN ist 4682. Sie steht auch auf dem Knopf „Girocard mit PIN“."));return;}
+          keys.innerHTML="";extra.innerHTML="";term.textContent="PIN richtig ✓\nVerbindung zur Bank ...";await sleep(1400);term.textContent="Bank prüft:\nIst genug Geld auf dem Konto?";await sleep(1800);
+          term.textContent="Zahlung erfolgt ✓\nBitte Karte entnehmen";extra.innerHTML=`<div class="ok-msg">Bezahlt! Das Geld wird von Jonas' Girokonto abgebucht.</div>`;unlock("giro");}
+      });}
+  }
+  function modeNfc(){
+    term.textContent="Betrag: 12,99 EUR\nKarte oder Handy\nan das Gerät halten";
+    keys.innerHTML=`<div class="row" style="margin-top:10px"><button class="tbtn" style="flex:1;margin:0" data-h="Karte">💳 Karte vorhalten</button><button class="tbtn" style="flex:1;margin:0" data-h="Handy">📱 Handy vorhalten</button></div>`;
+    keys.querySelectorAll("[data-h]").forEach(b=>b.onclick=async()=>{keys.innerHTML="";term.textContent="📶  Piep!";await sleep(1000);term.textContent="Bank prüft ...";await sleep(1400);
+      term.textContent="Zahlung erfolgt ✓";extra.innerHTML=`<div class="ok-msg">Bezahlt mit dem ${b.dataset.h}, bei kleinen Beträgen meist ganz ohne PIN. Das Geld wird trotzdem vom Girokonto abgebucht.</div>`;unlock("giro");});
+  }
+}
+
+/* ---------- Station Konto ---------- */
+let balance=250;
+const KPROD=[["⚽","Fußball",19.90,"2611"],["👕","Fußballtrikot",29.90,"2612"],["🧤","Torwarthandschuhe",24.90,"2613"],["🧢","Basecap",14.90,"2614"]];
+let kprod=0;
+const TX=[["Lastschrift","FC Musterdorf e.V.","Mitgliedsbeitrag November",-12,"last"],["Kartenzahlung","Bäckerei Sonnenschein","kontaktlos",-2.4,"karte"],["Gutschrift","Mama","Taschengeld November",25,"gut"],["Lastschrift","FC Musterdorf e.V.","Mitgliedsbeitrag Oktober",-12,"last"]];
+let kontoTab="ueb";
+function sceneKonto(){
+  $("#sceneArea").innerHTML=`<div class="phone"><div class="app">
+    <div class="app-head"><b>Übungsbank</b><br><small>Girokonto Jonas Weber · Kontostand</small> <b id="bal">${eur(balance)}</b></div>
+    <div class="app-tabs"><button aria-pressed="true" data-tab="ueb">Überweisen</button><button aria-pressed="false" data-tab="ums">Umsätze <span id="txCount" class="pill">${TX.length}</span></button></div>
+    <div class="app-body" id="appBody"></div></div></div>`;
+  $("#sceneArea").querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{$("#sceneArea").querySelectorAll("[data-tab]").forEach(x=>x.setAttribute("aria-pressed",x===b));kontoTab=b.dataset.tab;kontoTab==="ueb"?tabUeb():tabUms();});
+  tabUeb();
+}
+function tabUeb(){
+  const a=$("#appBody");const p=KPROD[kprod];
+  a.innerHTML=`<div class="info-msg" style="font-size:.92rem">Jonas will im Fußball-Onlineshop <b>Kickerkiste24</b> etwas für das Training bestellen. Der Shop möchte Vorkasse per Überweisung. Wählt ein Produkt, die Felder füllen sich dann aus.</div>
+    <div class="prodpick" style="grid-template-columns:repeat(2,1fr)">${KPROD.map((q,i)=>`<button data-kp="${i}" aria-pressed="${i===kprod}"><span class="big">${q[0]}</span><b>${q[1]}</b><span>${eur(q[2])}</span></button>`).join("")}</div>
+    <label>Empfänger (wer bekommt das Geld?)<input id="f-n" value="Kickerkiste24 GmbH"></label>
+    <label>IBAN (Kontonummer des Empfängers)<input id="f-i" value="DE00 1234 5678 9012 3456 78"></label>
+    <label>Betrag in €<input id="f-b" value="${p[2].toFixed(2).replace(".",",")}" inputmode="decimal"></label>
+    <label>Verwendungszweck (wofür ist das Geld?)<input id="f-v" value="${p[1]}, Bestellung ${p[3]}"></label>
+    <label style="display:flex;gap:.5rem;align-items:center;flex-direction:row;font-size:1rem;color:var(--ink)"><input type="checkbox" id="f-e" style="width:28px;min-height:28px"> Echtzeitüberweisung</label>
+    <button class="btn-main" style="--team:var(--konto)" id="f-go">Weiter</button><div id="f-out" style="display:grid;gap:.5rem"></div>`;
+  a.querySelectorAll("[data-kp]").forEach(b=>b.onclick=()=>{kprod=+b.dataset.kp;tabUeb();});
+  $("#f-go").onclick=()=>{
+    const b=Math.round(parseFloat($("#f-b").value.replace(",","."))*100)/100;const out=$("#f-out");
+    const miss=[];if(!$("#f-n").value.trim())miss.push("Empfänger");if(!$("#f-i").value.trim())miss.push("IBAN");if(!(b>0))miss.push("Betrag");
+    if(miss.length){out.innerHTML=err(`Bitte noch ausfüllen: ${miss.join(", ")}.`);return;}
+    if(b>balance){out.innerHTML=err(`So viel Geld ist nicht auf dem Konto. Kontostand: ${eur(balance)}. Tragt einen kleineren Betrag ein.`);return;}
+    out.innerHTML=`<div class="info-msg">🔐 Freigabe nötig: Bestätige die Überweisung über ${eur(b)} an ${$("#f-n").value}.</div><button class="btn-main" style="--team:var(--konto)" id="f-tan">Freigeben</button>`;
+    $("#f-tan").onclick=()=>{
+      const fast=$("#f-e").checked;
+      balance=Math.round((balance-b)*100)/100;$("#bal").textContent=eur(balance);
+      TX.unshift([fast?"Echtzeitüberweisung":"Überweisung",$("#f-n").value.trim(),$("#f-v").value.trim()||"ohne Verwendungszweck",-b,"ueb"]);
+      $("#txCount").textContent=TX.length;
+      out.innerHTML=`<div class="ok-msg">Überweisung ausgeführt ✓ Neuer Kontostand: ${eur(balance)}.<br>Das Geld ist ${fast?"in etwa 10 Sekunden":"spätestens am nächsten Bankarbeitstag"} beim Empfänger. Schaut unter „Umsätze“ nach: Dort steht die Überweisung jetzt ganz oben.</div><div class="err">Achtung: Zurückholen kann die Bank das Geld meist nur, wenn der Empfänger zustimmt.</div>${fast?"":`<div class="info-msg">Probiert jetzt noch eine Überweisung mit Haken bei „Echtzeitüberweisung“.</div>`}`;unlock("ueb");};
+  };
+}
+function tabUms(){
+  const a=$("#appBody");
+  a.innerHTML=`<div class="info-msg" style="font-size:.92rem">Hier seht ihr alle Buchungen auf Jonas' Konto, die neueste steht oben. Rot = Geld geht weg, grün = Geld kommt dazu. Findet die Buchung, bei der sich jemand jeden Monat Geld holt, und tippt darauf.</div>`+TX.map((t,i)=>`<button class="tx" data-i="${i}"><span><b>${t[1]}</b><small>${t[0]} · ${t[2]}</small></span><span class="${t[3]<0?"neg":"pos"}">${t[3]<0?"−":"+"}${eur(Math.abs(t[3]))}</span></button>`).join("")+`<div id="txd" style="display:grid;gap:.5rem"></div>`;
+  a.querySelectorAll(".tx").forEach(b=>b.onclick=()=>{const t=TX[+b.dataset.i];const d=$("#txd");
+    if(t[4]==="gut"){d.innerHTML=err("Das ist eine Gutschrift: Hier kommt Geld dazu. Sucht eine Buchung, bei der „Lastschrift“ steht.");return;}
+    if(t[4]==="karte"){d.innerHTML=err("Das ist eine Kartenzahlung beim Bäcker. Sucht eine Buchung, bei der „Lastschrift“ steht.");return;}
+    if(t[4]==="ueb"){d.innerHTML=`<div class="info-msg"><b>${t[0]}</b> an ${t[1]} über ${eur(-t[3])}.<br>Diese Zahlung hat Jonas selbst losgeschickt. Zurückholen kann er sie nicht einfach. Sucht eine Buchung, bei der „Lastschrift“ steht.</div>`;return;}
+    d.innerHTML=`<div class="info-msg"><b>SEPA-Lastschrift</b><br>Gläubiger: FC Musterdorf e.V.<br>Gläubiger-ID: DE00ZZZ00000000000<br>Mandatsreferenz: MITGL-0815<br><br>Jonas' Eltern haben dem Verein mit ihrer Unterschrift erlaubt, den Beitrag jeden Monat abzubuchen. Jonas muss nichts selbst überweisen.</div><button id="rueck">↩️ Lastschrift zurückgeben</button><div id="rmsg" style="display:grid;gap:.5rem"></div>`;unlock("last");
+    $("#rueck").onclick=()=>{$("#rmsg").innerHTML=`<div class="ok-msg">Das geht bis zu 8 Wochen nach der Abbuchung, ohne Begründung. Das Geld kommt zurück aufs Konto.</div><div class="err">Aber: Der Beitrag ist trotzdem fällig, wenn er berechtigt war.</div>`;};});
+}
+
+/* ---------- Station Online ---------- */
+function sceneOnline(){
+  let price=15,item="T-Shirt",guthaben=20,loads=0;
+  $("#sceneArea").innerHTML=`<div class="shopwin"><div class="shopbar"><span>👕 StyleBox24 · Modeshop</span><span>Kasse</span></div><div class="shopbody">
+    <div class="prodpick"><button id="c15" aria-pressed="true"><span class="big">👕</span><b>T-Shirt</b><span>15,00 €</span></button><button id="c25" aria-pressed="false"><span class="big">👟</span><b>Sneaker</b><span>25,00 €</span></button></div>
+    <div class="row" style="justify-content:space-between;align-items:center;font-size:1.1rem"><span>Im Warenkorb: <b id="cartName">T-Shirt</b></span><b id="cartPrice">15,00 €</b></div>
+    <p class="hint">Wählt eine Zahlungsart:</p>
+    <button class="payopt" data-p="dienst"><span class="ic">🛡️</span><span><b>Onlinebezahldienst</b><br><small>z. B. PayPal, Wero</small></span></button>
+    <button class="payopt" data-p="prepaid"><span class="ic">💳</span><span><b>Prepaid-Kreditkarte</b><br><small>Visa, Mastercard</small></span></button>
+    <button class="payopt off" data-p="last"><span class="ic">🏦</span><span><b>SEPA-Lastschrift</b><br><small>Infos bei Team Konto</small></span></button>
+    <button class="payopt off" data-p="bar"><span class="ic">💶</span><span><b>Barzahlung</b><br><small>nicht verfügbar</small></span></button>
+    <div id="payArea" style="display:grid;gap:.6rem"></div></div></div>`;
+  const setCart=(n,p,btn)=>{price=p;item=n;$("#cartName").textContent=n;$("#cartPrice").textContent=eur(p);$("#payArea").innerHTML="";
+    ["#c15","#c25"].forEach(s=>$(s).setAttribute("aria-pressed",$(s)===btn));$("#sceneArea").querySelectorAll(".payopt").forEach(x=>x.setAttribute("aria-pressed",false));};
+  $("#c15").onclick=e=>setCart("T-Shirt",15,e.currentTarget);$("#c25").onclick=e=>setCart("Sneaker",25,e.currentTarget);
+  $("#sceneArea").querySelectorAll(".payopt").forEach(b=>b.onclick=()=>{
+    $("#sceneArea").querySelectorAll(".payopt").forEach(x=>x.setAttribute("aria-pressed",x===b));const p=b.dataset.p,area=$("#payArea");
+    if(p==="bar"){area.innerHTML=err("Im Onlineshop kann man nicht bar bezahlen. Bargeld geht nur im Laden oder bei Abholung.");return;}
+    if(p==="last"){area.innerHTML=`<div class="info-msg">Auch im Onlineshop kann man oft per Lastschrift bezahlen: Der Shop holt sich das Geld dann selbst von deinem Konto. Wie das genau funktioniert, erklärt euch Team Konto.</div>`;return;}
+    if(p==="dienst"){area.innerHTML=`<div class="pp-window"><b>🛡️ Bezahldienst · Anmelden</b>
+      <div class="err" style="font-weight:600">Jonas ist erst 13. Ein PayPal-Konto gibt es erst ab 18 Jahren. Hier bestellt deshalb sein großer Bruder Ben Weber (19) für ihn.</div>
+      <label>E-Mail<input value="ben.weber@mail.de"></label><label>Passwort<input type="password" value="geheim123"></label>
+      <button class="btn-main" style="--team:var(--online)" id="ppGo">Anmelden und ${eur(price)} zahlen</button><div id="ppOut"></div></div>`;
+      $("#ppGo").onclick=async()=>{$("#ppOut").innerHTML=`<div class="info-msg">Der Bezahldienst holt das Geld von Bens Bankkonto ...</div>`;await sleep(1500);
+        $("#ppOut").innerHTML=`<div class="ok-msg">Bezahlt ✓ Der Shop hat sein Geld sofort, Bens Bankdaten hat er nicht gesehen.<br>🛡️ Käuferschutz aktiv: Kommt ${item==="T-Shirt"?"das T-Shirt":"das Paar Sneaker"} nicht an, gibt es das Geld meist zurück.</div>`;unlock("dienst");};return;}
+    area.innerHTML=`<div class="ccard"><small>PREPAID</small><div style="font-size:1.15rem;letter-spacing:.08em;margin:.4rem 0">4000 1234 5678 9010</div><div class="row" style="justify-content:space-between"><span>JONAS WEBER</span><span>12/28</span></div><div style="margin-top:.3rem">Guthaben auf der Karte: <b id="gh">${eur(guthaben)}</b></div></div>
+      <label>Kartennummer<input value="4000 1234 5678 9010"></label><div class="row"><label style="flex:1">Gültig bis<input value="12/28"></label><label style="flex:1">Prüfnummer<input value="123"></label></div>
+      <div class="row"><button class="btn-main" style="--team:var(--online);flex:1" id="ccGo">${eur(price)} bezahlen</button><button id="ccLoad">+ 20 € aufladen</button></div><div id="ccOut"></div>`;
+    $("#ccLoad").onclick=()=>{
+      if(loads>=2){$("#ccOut").innerHTML=`<div class="err">🛑 Jonas' Eltern sagen Nein: „Du bekommst diesen Monat kein Geld mehr! Du sollst lernen, verantwortungsvoll mit deinem Geld umzugehen und nicht wahllos Dinge zu kaufen. Spar das Geld lieber. Außerdem werden wir sonst noch arm mit dir, wenn du immer so viel kaufst!“</div><div class="info-msg">Mit der Prepaid-Karte kann Jonas jetzt nur noch das ausgeben, was noch drauf ist: ${eur(guthaben)}.</div>`;return;}
+      loads++;guthaben+=20;$("#gh").textContent=eur(guthaben);$("#ccOut").innerHTML=`<div class="info-msg">Jonas' Eltern haben 20 € aufgeladen (${loads}. Aufladung in diesem Monat). Neues Guthaben: ${eur(guthaben)}.</div>`;};
+    $("#ccGo").onclick=async()=>{const o=$("#ccOut");o.innerHTML=`<div class="info-msg">Karte wird geprüft ...</div>`;await sleep(1300);
+      if(price>guthaben){o.innerHTML=err(`Zahlung abgelehnt! Auf der Karte sind nur ${eur(guthaben)}, ${item==="T-Shirt"?"das T-Shirt":"die Sneaker"} kosten aber ${eur(price)}. Mit einer Prepaid-Karte kann man keine Schulden machen. Erst wieder aufladen!`);unlock("prepaid");return;}
+      guthaben=Math.round((guthaben-price)*100)/100;$("#gh").textContent=eur(guthaben);
+      o.innerHTML=`<div class="ok-msg">Bezahlt ✓ Der Shop hat sein Geld sofort. Auf der Karte bleiben ${eur(guthaben)}.${item==="T-Shirt"?"<br>Wählt jetzt oben die Sneaker für 25 € und bezahlt noch einmal.":""}</div>`;unlock("prepaid");};
+  });
+}
+
+/* ---------- Schritt 3: Geldweg-Baukasten ---------- */
+let B=null,selected=null,playing=false,nextResolve=null;
+function renderPaytabs(){
+  $("#paytabs").innerHTML=TEAMS[team].pays.map(p=>`<button aria-pressed="${p===pay}" data-p="${p}">${PAY[p].name}</button>`).join("");
+  $("#paytabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{stopPlay();pay=b.dataset.p;renderPaytabs();loadBuilder();});
+}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function loadBuilder(){
+  const d=PAY[pay];const ids=d.steps.map((_,i)=>"s"+i).concat("x");
+  const saved=store.get("bw3-"+pay);
+  B=saved&&saved.order&&saved.order.length===ids.length?saved:{order:shuffle(ids),slots:Array(d.steps.length).fill(null)};
+  selected=null;$("#feedback").innerHTML="";renderStage();renderBuilder();idleCaption();
+}
+function textOf(id){const d=PAY[pay];return id==="x"?d.distractor:d.steps[+id.slice(1)][3];}
+function renderStage(){
+  const d=PAY[pay];
+  $("#gstage").innerHTML=d.actors.map(([k,ic,l])=>`<div class="actor" data-a="${k}"><div class="av">${ic}</div><span>${l}</span></div>`).join("")+`<div class="token" id="token"></div>`;
+  $("#presentTitle").textContent="Geldweg: "+d.name;
+  $("#presentPic").innerHTML=`${IMG[pay]}<p><b>${d.name}</b><br>${d.picText}<br><span class="pill">${d.ex}</span></p>`;
+}
+function renderBuilder(){
+  store.set("bw3-"+pay,B);
+  const bub=id=>`<div class="bubble${selected===id?" sel":""}" data-id="${id}" tabindex="0">${textOf(id)}</div>`;
+  $("#slots").innerHTML=B.slots.map((id,i)=>`<div class="slotrow"><div class="lab">Schritt ${i+1}</div><div class="slot" data-i="${i}">${id?bub(id):""}</div></div>`).join("");
+  const free=B.order.filter(id=>!B.slots.includes(id));
+  $("#bank").innerHTML=`<h3>Sprechblasen</h3>`+(free.length?free.map(bub).join(""):`<p class="hint">Alle Blasen verteilt.</p>`);
+  document.querySelectorAll("#builder .bubble").forEach(bindDrag);
+  document.querySelectorAll("#slots .slot").forEach(s=>s.onclick=e=>{if(e.target.closest(".bubble"))return;if(selected)place(selected,+s.dataset.i);else $("#feedback").innerHTML=err("Tippt zuerst eine Sprechblase an (oder zieht sie direkt in das Feld).");});
+  $("#bank").onclick=e=>{if(e.target.closest(".bubble"))return;if(selected)unplace(selected);};
+}
+function place(id,i){const from=B.slots.indexOf(id);const other=B.slots[i];if(from>=0)B.slots[from]=other&&other!==id?other:null;B.slots[i]=id;selected=null;$("#feedback").innerHTML="";renderBuilder();}
+function unplace(id){const f=B.slots.indexOf(id);if(f>=0)B.slots[f]=null;selected=null;$("#feedback").innerHTML="";renderBuilder();}
+function bindDrag(el){
+  el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selected=selected===el.dataset.id?null:el.dataset.id;renderBuilder();}};
+  el.addEventListener("pointerdown",e=>{
+    if(e.button>0)return;e.preventDefault();
+    const id=el.dataset.id,sx=e.clientX,sy=e.clientY;let ghost=null,over=null;
+    try{el.setPointerCapture(e.pointerId);}catch(_){}
+    const target=(x,y)=>{const t=document.elementFromPoint(x,y);return t&&(t.closest(".slot")||t.closest(".bank"));};
+    const move=ev=>{
+      if(!ghost&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>8){ghost=el.cloneNode(true);ghost.classList.add("ghost");ghost.style.width=el.offsetWidth+"px";document.body.appendChild(ghost);el.classList.add("dragging");}
+      if(ghost){ghost.style.left=(ev.clientX-el.offsetWidth/2)+"px";ghost.style.top=(ev.clientY-24)+"px";const t=target(ev.clientX,ev.clientY);if(over&&over!==t)over.classList.remove("over");if(t)t.classList.add("over");over=t;}
+    };
+    const end=ev=>{
+      el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",end);el.removeEventListener("pointercancel",end);
+      if(over)over.classList.remove("over");
+      if(ghost){ghost.remove();el.classList.remove("dragging");const t=ev.type==="pointercancel"?null:target(ev.clientX,ev.clientY);
+        if(t&&t.classList.contains("slot"))place(id,+t.dataset.i);else if(t&&t.classList.contains("bank"))unplace(id);else renderBuilder();}
+      else{selected=selected===id?null:id;renderBuilder();}
+    };
+    el.addEventListener("pointermove",move);el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);
+  });
+}
+function emptySlots(){return B.slots.map((x,i)=>x?null:i+1).filter(Boolean);}
+function markEmpty(){document.querySelectorAll("#slots .slot").forEach((s,i)=>s.classList.toggle("empty-bad",!B.slots[i]));}
+function celebrate(msg){
+  const host=document.createElement("div");host.className="party";document.body.appendChild(host);
+  const pop=document.createElement("div");pop.className="pop";pop.textContent=msg||"Mega! Alles richtig! 🎉";host.appendChild(pop);
+  pop.animate([{transform:"translate(-50%,-50%) scale(.2) rotate(-10deg)",opacity:0},{transform:"translate(-50%,-50%) scale(1.15) rotate(3deg)",opacity:1,offset:.25},{transform:"translate(-50%,-50%) scale(1) rotate(0)",opacity:1,offset:.8},{transform:"translate(-50%,-50%) scale(1)",opacity:0}],{duration:3200,easing:"ease-out",fill:"forwards"});
+  if(!reduce){
+    const colors=["#E2683C","#128C7E","#6E4BD8","#F2A516","#2E63D9","#E84A8A","#1E8E4E"];
+    const emo=["🎉","⭐","💶","🪙","🥳","💳"];
+    for(let i=0;i<140;i++){
+      const c=document.createElement("i");const isE=i%9===0;
+      if(isE){c.textContent=emo[i%emo.length];c.style.fontSize=(22+Math.random()*16)+"px";}
+      else{const w=7+Math.random()*7;c.style.width=w+"px";c.style.height=(w*1.6)+"px";c.style.background=colors[i%colors.length];c.style.borderRadius=Math.random()<.3?"50%":"2px";}
+      c.style.left=(Math.random()*100)+"vw";host.appendChild(c);
+      const dx=(Math.random()-.5)*260,rot=(Math.random()-.5)*1440;
+      c.animate([{transform:"translate(0,0) rotate(0)"},{transform:`translate(${dx}px,${window.innerHeight+80}px) rotate(${rot}deg)`}],{duration:2600+Math.random()*2200,delay:Math.random()*700,easing:"cubic-bezier(.25,.6,.4,1)",fill:"forwards"});
+    }
+  }
+  setTimeout(()=>host.remove(),5600);
+}
+function check(quiet){
+  let right=0;const n=B.slots.length;
+  document.querySelectorAll("#slots .slot").forEach((s,i)=>{const id=B.slots[i];s.classList.remove("right","wrong","empty-bad");if(!id){s.classList.add("empty-bad");return;}
+    if(id==="s"+i){s.classList.add("right");right++;}else s.classList.add("wrong");});
+  if(right===n){$("#feedback").innerHTML=`<div class="ok-msg">Alles richtig! 🎉 Spielt den Geldweg jetzt ab oder präsentiert ihn.</div>`;if(!quiet)celebrate();return true;}
+  const parts=[`${right} von ${n} Schritten sind richtig. Die rot markierten Felder stimmen noch nicht.`];
+  if(B.slots.includes("x"))parts.push("Eine Sprechblase gehört gar nicht zu dieser Zahlungsart. Findet sie und legt sie zurück!");
+  const e=emptySlots();if(e.length)parts.push(`Leer: Schritt ${e.join(", ")}.`);
+  $("#feedback").innerHTML=err(parts.join(" "));return false;
+}
+function isCorrect(){return B.slots.every((id,i)=>id==="s"+i);}
+function idleCaption(){$("#caption").className="caption";$("#caption").innerHTML=`<span class="num">?</span><span><span class="ex">Hier erscheint beim Abspielen jeder Schritt mit einer Erklärung.</span></span>`;}
+function setCaption(n,ex,q,bad){$("#caption").className="caption"+(bad?" bad":"");$("#caption").innerHTML=`<span class="num">${n}</span><span><span class="ex">${ex}</span>${q?`<span class="q">„${q}“</span>`:""}</span>`;}
+function center(a){const st=$("#gstage").getBoundingClientRect();const r=document.querySelector(`.actor[data-a="${a}"] .av`).getBoundingClientRect();return{x:r.left-st.left+r.width/2,y:r.top-st.top+r.height/2};}
+function stopPlay(){playing=false;stopSpeak();if(nextResolve){const r=nextResolve;nextResolve=null;r();}}
+async function play(manual){
+  if(playing)return;
+  const e=emptySlots();
+  if(e.length){markEmpty();$("#feedback").innerHTML=err(`Abspielen geht noch nicht: In Schritt ${e.join(", ")} fehlt eine Sprechblase. Zieht zuerst alle passenden Blasen in die Felder.`);setCaption("!","Erst alle Schritte füllen, dann abspielen.","",true);return;}
+  playing=true;$("#feedback").innerHTML="";const d=PAY[pay];const tok=$("#token");
+  for(let i=0;i<B.slots.length;i++){
+    if(!playing)break;const id=B.slots[i];
+    document.querySelectorAll(".actor").forEach(a=>a.classList.remove("active"));
+    if(id==="x"){setCaption(i+1,"Moment! Diese Sprechblase passt nicht zu dieser Zahlungsart.",textOf(id),true);await sleep(2500);}
+    else{
+      const [f,t,ic,tx,ex]=d.steps[+id.slice(1)];const wrongPos=id!=="s"+i;
+      setCaption(i+1,ex+(wrongPos?" (Stimmt die Reihenfolge?)":""),tx,wrongPos);
+      document.querySelector(`.actor[data-a="${f}"]`).classList.add("active");
+      const A=center(f),Z=center(t);tok.textContent=ic;const h=tok.offsetWidth/2||22,v=tok.offsetHeight/2||22;
+      const anim=tok.animate([
+        {transform:`translate(${A.x-h}px,${A.y-v}px) scale(.5)`,opacity:0},
+        {transform:`translate(${A.x-h}px,${A.y-v-40}px) scale(1.15)`,opacity:1,offset:.2},
+        {transform:`translate(${Z.x-h}px,${Z.y-v-40}px) scale(1.15)`,opacity:1,offset:.8},
+        {transform:`translate(${Z.x-h}px,${Z.y-v}px) scale(.5)`,opacity:0}],
+        {duration:reduce?600:4200,easing:"ease-in-out",fill:"forwards"});
+      await Promise.all([anim.finished.catch(()=>{}),speak(ex)]);
+      if(!playing)break;
+      document.querySelector(`.actor[data-a="${t}"]`).classList.add("active");
+    }
+    if(!playing)break;
+    if(manual)await new Promise(r=>nextResolve=r);else await sleep(1800);
+  }
+  document.querySelectorAll(".actor").forEach(a=>a.classList.remove("active"));
+  if(playing){
+    if(isCorrect()){setCaption("✓","Ende des Geldwegs.");if(manual){$("#nextBtn").textContent="Nochmal von vorn ↺";celebrate("Danke fürs Zuhören! 👏");}}
+    else setCaption("!","Ende. Einige Schritte stimmen noch nicht. Drückt auf „Prüfen“.","",true);
+  }
+  playing=false;
+}
+$("#checkBtn").onclick=()=>check(false);
+$("#playBtn").onclick=()=>play(false);
+$("#resetBtn").onclick=()=>{stopPlay();B.slots=B.slots.map(()=>null);selected=null;$("#feedback").innerHTML="";renderBuilder();idleCaption();};
+$("#presentBtn").onclick=()=>{
+  if(!isCorrect()){check(true);$("#feedback").innerHTML+=err("Präsentieren geht erst, wenn alle Schritte richtig liegen. Verbessert die rot markierten Felder.");return;}
+  stopPlay();loadVoices();document.body.classList.add("present");$("#nextBtn").textContent="Start ▶";window.scrollTo(0,0);
+  setCaption("▶",`Gleich zeigen wir euch den Geldweg bei der ${PAY[pay].name}. Tippt auf „Start“.`);};
+$("#nextBtn").onclick=()=>{if(nextResolve){stopSpeak();const r=nextResolve;nextResolve=null;r();}else if(!playing){$("#nextBtn").textContent="Nächster Schritt ▶";play(true);}};
+$("#endPresent").onclick=()=>{stopPlay();document.body.classList.remove("present");idleCaption();};
+
+window.addEventListener("hashchange",()=>{stopPlay();setTeam(location.hash.slice(1));});
+setTeam(location.hash.slice(1)||"laden");
+</script>
+</body>
+</html>
