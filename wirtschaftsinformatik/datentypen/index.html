@@ -161,13 +161,18 @@
   <h2>Datentyp-Checker</h2>
   <p class="sub">Hier testest du, was passiert, wenn eine Spalte einen unpassenden Datentyp hat. Geh dazu die Schritte 1, 2 und 3 der Reihe nach durch.</p>
   <div class="testbox">
-    <div class="tbhead">💡 Testfälle zum Anklicken</div>
-    <div class="tbtext">Ein Klick stellt Tabelle, Spalte, Datentyp und Wert automatisch ein. Danach musst du nur noch auf <b>Speichern</b> klicken. Du kannst aber auch <b>selbst herumprobieren</b>: Wähle andere Datentypen oder gib eigene Werte ein und beobachte, was passiert.</div>
+    <div class="tbhead">📋 Jonas’ Fehlerprotokoll nachstellen</div>
+    <div class="tbtext">Ein Klick stellt genau den Fehler aus Jonas’ Testlauf ein. Klick danach auf <b>Speichern</b> (bei Fehler 1 läuft der Summentest automatisch) und finde heraus, was schiefgeht.</div>
     <div class="presets">
-      <button class="btn ghost" data-preset="plz">PLZ 04109</button>
-      <button class="btn ghost" data-preset="artnr">Artikelnummer 335B927</button>
+      <button class="btn ghost" data-sum="0.95|1000">Fehler 1: Einzelpreis als FLOAT (1.000 × 0,95 €)</button>
+      <button class="btn ghost" data-preset="plz">Fehler 2: PLZ 04109 als INT</button>
+      <button class="btn ghost" data-preset="artnr">Fehler 3: ArtikelNr 335B927 als INT</button>
+      <button class="btn ghost" data-preset="datum">Fehler 4: Rechnungsdatum 09.05.2026</button>
+    </div>
+    <div class="tbhead" style="margin-top:14px">💡 Weitere Testfälle</div>
+    <div class="tbtext">Du kannst auch <b>selbst herumprobieren</b>: Wähle andere Datentypen oder gib eigene Werte ein und beobachte, was passiert.</div>
+    <div class="presets">
       <button class="btn ghost" data-preset="preis">Preis 0.95 als FLOAT</button>
-      <button class="btn ghost" data-preset="datum">Datum 09.05.2026</button>
       <button class="btn ghost" data-preset="name">Firmenname zu lang</button>
       <button class="btn ghost" data-preset="datum2">Datum 2026-02-30</button>
       <button class="btn ghost" data-preset="zeit">Uhrzeit 14.30 Uhr</button>
@@ -537,6 +542,7 @@
   }
   chain();
   $('sRun').addEventListener('click', runSum);
+  document.querySelectorAll('[data-sum]').forEach(btn => btn.addEventListener('click', () => { const [v, n] = btn.dataset.sum.split('|'); $('sVal').value = v; $('sCnt').value = n; show('sum'); runSum(); window.scrollTo(0, 0); }));
   document.querySelectorAll('.ref span:not(.muted)').forEach(s => { s.style.cursor = 'pointer'; s.addEventListener('click', () => { const [a,b] = s.textContent.split(' × '); $('sVal').value = a; $('sCnt').value = b; runSum(); }); });
   runSum();
 
