@@ -183,7 +183,7 @@ footer{color:var(--muted);font-size:.85rem}
   <section class="card hide-present" id="inform">
     <span class="step-label">Schritt 2 · Informieren</span>
     <h2>Was habt ihr gerade gemacht?</h2>
-    <p class="hint">Lest die Texte zu euren zwei Zahlungsarten genau. Tragt das Wichtigste in eure Vergleichstabelle ein.</p>
+    <p class="hint" id="informHint">Lest den Text zu eurer Zahlungsart genau. Tragt das Wichtigste in eure Zeile der Vergleichstabelle ein.</p>
     <div class="infos" id="infoArea"></div>
   </section>
 
@@ -275,12 +275,7 @@ const TEAMS={
       "Geht danach zu Schritt 2 und lest, was ihr gerade gemacht habt."]},
   konto:{name:"Team Konto",sub:"Überweisung · Lastschrift",color:"var(--konto)",pays:["ueb","last"],
     title:"Station Konto: Jonas' Banking-App",
-    tasks:["Das ist die Banking-App von Jonas Weber. Schaut zuerst oben: Wie viel Geld ist auf seinem Konto?",
-      "Bleibt bei „Überweisen“ und wählt ein Produkt, das Jonas im Fußball-Onlineshop kaufen will. Schaut euch die Felder an: Wer bekommt das Geld? Was ist die IBAN? Wofür ist der Verwendungszweck?",
-      "Tippt auf „Weiter“ und gebt die Überweisung frei. Achtet auf den Kontostand und auf den roten Hinweis.",
-      "Macht noch eine Überweisung mit einem anderen Produkt, diesmal mit Haken bei „Echtzeitüberweisung“. Was ändert sich?",
-      "Wechselt oben zu „Umsätze“. Findet ihr eure Überweisungen? Wer holt sich jeden Monat Geld von Jonas' Konto? Tippt auf diese Buchung.",
-      "Findet heraus: Kann Jonas sich das Geld zurückholen? Tippt auf „Lastschrift zurückgeben“."]},
+    tasks:["Das ist die Banking-App von Jonas Weber. Schaut oben: Wie viel Geld ist auf seinem Konto?","Überweisen: Wählt ein Produkt, prüft die Felder und gebt die Überweisung frei.","Verein: Meldet Jonas im Fußballverein an (Lastschriftmandat) und spult einen Monat vor. Was passiert mit dem Kontostand?","Umsätze: Findet eure Überweisung und die Lastschrift. Zusatz: Gebt eine Lastschrift zurück."]},
   online:{name:"Team Online",sub:"Onlinebezahldienst · Prepaid-Kreditkarte",color:"var(--online)",pays:["dienst","prepaid"],
     title:"Station Online: Die Kasse im Modeshop",
     tasks:["Jonas Weber möchte im Onlineshop StyleBox24 einkaufen. Das T-Shirt für 15 € liegt schon im Warenkorb.",
@@ -381,7 +376,7 @@ const GROUPS=[
   ["bar","laden","bar","Barzahlung",["Jonas Weber kauft im Elektromarkt eine Handyhülle für 12,99 €. Schaut sie euch an.","Tippt auf „Bar bezahlen“. Gebt so lange Scheine und Münzen aus Jonas' Geldbeutel, bis genug Geld da ist.","Wie viel Rückgeld bekommt Jonas? Was steht auf dem Kassenbon?","Probiert es noch einmal mit anderen Scheinen.","Geht danach zu Schritt 2 und lest, was ihr gerade gemacht habt."]],
   ["karte","laden","giro","Girocard / kontaktlos",["Jonas Weber kauft im Elektromarkt eine Handyhülle für 12,99 €. Schaut sie euch an.","Tippt auf „Girocard mit PIN“. Steckt die Karte ein und tippt die PIN 4682 ein.","Lest genau, was auf dem Display steht. Wen fragt das Kartenlesegerät?","Tippt auf „Kontaktlos“ und haltet Karte oder Handy an das Gerät. Was ist anders als mit PIN?","Geht danach zu Schritt 2 und lest, was ihr gerade gemacht habt."]],
   ["ueberweisung","konto","ueb","SEPA-Überweisung",["Das ist die Banking-App von Jonas Weber. Schaut zuerst oben: Wie viel Geld ist auf seinem Konto?","Wählt ein Produkt aus dem Fußball-Shop. Schaut euch die Felder an: Wer bekommt das Geld? Was ist die IBAN? Wofür ist der Verwendungszweck?","Tippt auf „Weiter“ und gebt die Überweisung frei. Achtet auf den Kontostand und den roten Hinweis.","Macht noch eine Überweisung, diesmal mit Haken bei „Echtzeitüberweisung“. Was ändert sich?","Schaut unter „Umsätze“ nach: Wo stehen eure Überweisungen?"]],
-  ["lastschrift","konto","last","SEPA-Lastschrift",["Das ist die Banking-App von Jonas Weber. Schaut zuerst oben: Wie viel Geld ist auf seinem Konto?","Wechselt oben zu „Umsätze“. Wer holt sich jeden Monat Geld von Jonas' Konto?","Tippt auf diese Buchung. Wer ist der Gläubiger? Wer hat die Erlaubnis (das Mandat) gegeben?","Tippt auf „Lastschrift zurückgeben“. Was passiert, und was müsst ihr trotzdem beachten?","Geht danach zu Schritt 2 und lest, was ihr gerade gemacht habt."]],
+  ["lastschrift","konto","last","SEPA-Lastschrift",["Jonas Weber will in den Fußballverein FC Musterdorf. Der Beitrag kostet 12 € im Monat. Ihr seid in Jonas' Banking-App unter „⚽ Verein“.","Lest den Mitgliedsantrag: Was erlauben Jonas' Eltern dem Verein mit dem Lastschriftmandat? Setzt den Haken, unterschreibt und schickt den Antrag ab.","Tippt auf „Einen Monat vorspulen“. Was passiert mit Jonas' Kontostand? Musste Jonas selbst etwas tun?","Spult noch einen Monat vor. Schaut dann unter „Umsätze“ nach: Was steht dort?","Zusatz: Tippt in den Umsätzen auf eine Lastschrift. Was kann Jonas tun, wenn falsch abgebucht wurde?"]],
   ["bezahldienst","online","dienst","Onlinebezahldienst",["Jonas Weber möchte im Onlineshop StyleBox24 ein T-Shirt für 15 € kaufen.","Wählt „Onlinebezahldienst“. Lest den roten Hinweis: Wer darf so ein Konto haben?","Meldet euch an und bezahlt. Was steht beim Käuferschutz?","Tippt auch auf „Barzahlung“ und „SEPA-Lastschrift“. Was steht dort?","Geht danach zu Schritt 2 und lest, was ihr gerade gemacht habt."]],
   ["prepaid","online","prepaid","Prepaid-Kreditkarte",["Jonas Weber möchte im Onlineshop StyleBox24 ein T-Shirt für 15 € kaufen.","Wählt „Prepaid-Kreditkarte“ und bezahlt das T-Shirt. Wie viel Guthaben bleibt übrig?","Wählt oben die Sneaker für 25 € und bezahlt wieder mit der Prepaid-Karte. Was passiert und warum?","Ladet auf und probiert es noch einmal. Was passiert, wenn ihr ein drittes Mal aufladen wollt?","Geht danach zu Schritt 2 und lest, was ihr gerade gemacht habt."]]
 ];
@@ -405,6 +400,7 @@ function setTeam(h){
   $("#tasks").innerHTML=`<b>Eure Aufgaben:</b><ol>${tasks.map(x=>`<li>${x}</li>`).join("")}</ol>`;
   ({laden:sceneLaden,konto:sceneKonto,online:sceneOnline})[t]();renderInfos();renderPaytabs();loadBuilder();
   document.querySelector("#paytabs").style.display=pays().length>1?"":"none";
+  $("#informHint").textContent=pays().length>1?"Lest die Texte zu euren zwei Zahlungsarten genau. Tragt das Wichtigste in eure Vergleichstabelle ein.":"Lest den Text zu eurer Zahlungsart genau. Tragt das Wichtigste in eure Zeile der Vergleichstabelle ein.";
 }
 
 /* ---------- Schritt 2: Bilder + Fließtext ---------- */
@@ -470,15 +466,55 @@ Wie möchtest du bezahlen?</div><div id="termKeys"></div></div><div id="ladenExt
 let balance=250;
 const KPROD=[["⚽","Fußball",19.90,"2611"],["👕","Fußballtrikot",29.90,"2612"],["🧤","Torwarthandschuhe",24.90,"2613"],["🧢","Basecap",14.90,"2614"]];
 let kprod=0;
-const TX=[["Lastschrift","FC Musterdorf e.V.","Mitgliedsbeitrag November",-12,"last"],["Kartenzahlung","Bäckerei Sonnenschein","kontaktlos",-2.4,"karte"],["Gutschrift","Mama","Taschengeld November",25,"gut"],["Lastschrift","FC Musterdorf e.V.","Mitgliedsbeitrag Oktober",-12,"last"]];
-let kontoTab="ueb";
+const TX=[["Kartenzahlung","Bäckerei Sonnenschein","kontaktlos",-2.4,"karte"],["Gutschrift","Mama","Taschengeld November",25,"gut"]];
+let kontoTab=null,mandat=false,signed=false,monthIdx=0;
+const MONTHS=["15. November","1. Dezember","1. Januar","1. Februar","1. März","1. April"];
+function kontoTabs(){return solo==="last"?["verein","ums"]:solo==="ueb"?["ueb","ums"]:["ueb","verein","ums"];}
 function sceneKonto(){
+  const tabs=kontoTabs(),lab={ueb:"Überweisen",verein:"⚽ Verein",ums:"Umsätze"};
+  if(!tabs.includes(kontoTab))kontoTab=tabs[0];
   $("#sceneArea").innerHTML=`<div class="phone"><div class="app">
-    <div class="app-head"><b>Übungsbank</b><br><small>Girokonto Jonas Weber · Kontostand</small> <b id="bal">${eur(balance)}</b></div>
-    <div class="app-tabs"><button aria-pressed="true" data-tab="ueb">Überweisen</button><button aria-pressed="false" data-tab="ums">Umsätze <span id="txCount" class="pill">${TX.length}</span></button></div>
+    <div class="app-head"><b>Übungsbank</b><br><small>Girokonto Jonas Weber</small><br>Kontostand: <b id="bal" style="font-size:1.2rem">${eur(balance)}</b><br><small id="today">Heute: ${MONTHS[monthIdx]}</small></div>
+    <div class="app-tabs">${tabs.map(t=>`<button aria-pressed="${t===kontoTab}" data-tab="${t}">${lab[t]}${t==="ums"?` <span id="txCount" class="pill">${TX.length}</span>`:""}</button>`).join("")}</div>
     <div class="app-body" id="appBody"></div></div></div>`;
-  $("#sceneArea").querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{$("#sceneArea").querySelectorAll("[data-tab]").forEach(x=>x.setAttribute("aria-pressed",x===b));kontoTab=b.dataset.tab;kontoTab==="ueb"?tabUeb():tabUms();});
-  tabUeb();
+  $("#sceneArea").querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{kontoTab=b.dataset.tab;sceneKonto();});
+  ({ueb:tabUeb,verein:tabVerein,ums:tabUms})[kontoTab]();
+}
+function refreshHead(){$("#bal").textContent=eur(balance);$("#today").textContent="Heute: "+MONTHS[monthIdx];const c=$("#txCount");if(c)c.textContent=TX.length;}
+function tabVerein(){
+  const a=$("#appBody");
+  if(!mandat){
+    a.innerHTML=`<div class="info-msg" style="font-size:.92rem"><b>⚽ FC Musterdorf e.V. · Mitgliedsantrag</b><br>Mitgliedsbeitrag: <b>12,00 € im Monat</b>, wird immer am 1. abgebucht.</div>
+      <label>Neues Mitglied<input value="Jonas Weber"></label>
+      <label>Kontoinhaber<input value="Familie Weber"></label>
+      <label>IBAN<input id="m-iban" value="DE00 9876 5432 1098 7654 32"></label>
+      <div style="border:2px solid var(--line);border-radius:12px;padding:.6rem .7rem;font-size:.88rem;background:#FAFBFD"><b>SEPA-Lastschriftmandat</b><br>Ich ermächtige den FC Musterdorf e.V., den Mitgliedsbeitrag von meinem Konto mittels Lastschrift einzuziehen. Ich kann eine Lastschrift innerhalb von 8 Wochen zurückgeben.<br><span style="color:var(--muted)">Gläubiger-ID: DE00ZZZ00000000000</span></div>
+      <label style="display:flex;gap:.5rem;align-items:center;flex-direction:row;font-size:1rem;color:var(--ink)"><input type="checkbox" id="m-ok" style="width:28px;min-height:28px"> Ich erteile das Lastschriftmandat.</label>
+      <div style="font-size:.88rem;color:var(--muted)">Unterschrift der Eltern (antippen):</div>
+      <button id="m-sign" style="height:70px;border-style:dashed;background:#fff">${signed?`<svg viewBox="0 0 200 50" width="180" height="45" aria-label="Unterschrift"><path d="M10 35c15-25 25 10 40-5s20 15 35 0 15 10 30-5 20 10 35 0 10 5 30-8" fill="none" stroke="#1E3A8A" stroke-width="2.5" stroke-linecap="round"/></svg>`:"✍️ Hier unterschreiben"}</button>
+      <button class="btn-main" style="--team:var(--konto)" id="m-go">Antrag abschicken</button><div id="m-out" style="display:grid;gap:.5rem"></div>`;
+    $("#m-sign").onclick=()=>{signed=true;tabVerein();};
+    $("#m-go").onclick=()=>{const miss=[];if(!$("#m-iban").value.trim())miss.push("IBAN eintragen");if(!$("#m-ok").checked)miss.push("Haken beim Lastschriftmandat setzen");if(!signed)miss.push("unterschreiben");
+      if(miss.length){$("#m-out").innerHTML=err("Noch nicht fertig: "+miss.join(", ")+".");return;}
+      mandat=true;tabVerein();};
+    return;
+  }
+  const debits=TX.filter(t=>t[4]==="last").length;
+  a.innerHTML=`<div class="ok-msg">✓ Jonas ist Mitglied! Das Lastschriftmandat ist erteilt.<br><span style="font-weight:400">Mandatsreferenz: MITGL-0815</span></div>
+    <div class="info-msg" style="font-size:.92rem">Jetzt darf sich der Verein den Beitrag jeden Monat selbst von Jonas' Konto holen. Jonas muss nichts überweisen.<br><b>Spult vor und beobachtet den Kontostand oben.</b></div>
+    <button class="btn-main" style="--team:var(--konto)" id="m-next" ${monthIdx>=MONTHS.length-1?"disabled":""}>📅 Einen Monat vorspulen</button>
+    <div id="m-log" style="display:grid;gap:.5rem">${debits?`<div class="ok-msg">Bisher hat der Verein ${debits}× 12,00 € abgebucht, ganz automatisch. Schaut unter „Umsätze“ nach.</div>`:""}</div>
+    ${debits?`<div class="info-msg" style="font-size:.88rem"><b>Zusatz:</b> Falsch abgebucht? In den „Umsätzen“ auf eine Lastschrift tippen, dort kann Jonas sie zurückgeben.</div>`:""}`;
+  $("#m-next").onclick=async()=>{
+    const b=$("#m-next");b.disabled=true;monthIdx++;refreshHead();
+    $("#m-log").innerHTML=`<div class="info-msg">📅 Heute ist der ${MONTHS[monthIdx]}. Der Verein meldet sich bei Jonas' Bank ...</div>`;
+    await sleep(1400);
+    balance=Math.round((balance-12)*100)/100;
+    const mon=MONTHS[monthIdx].replace("1. ","");
+    TX.unshift(["Lastschrift","FC Musterdorf e.V.","Mitgliedsbeitrag "+mon,-12,"last"]);
+    refreshHead();unlock("last");tabVerein();
+    $("#m-log").insertAdjacentHTML("afterbegin",`<div class="ok-msg">💶 Am ${MONTHS[monthIdx]} hat der Verein 12,00 € von Jonas' Konto abgebucht. Neuer Kontostand: ${eur(balance)}.</div>`);
+  };
 }
 function tabUeb(){
   const a=$("#appBody");const p=KPROD[kprod];
@@ -499,21 +535,24 @@ function tabUeb(){
     out.innerHTML=`<div class="info-msg">🔐 Freigabe nötig: Bestätige die Überweisung über ${eur(b)} an ${$("#f-n").value}.</div><button class="btn-main" style="--team:var(--konto)" id="f-tan">Freigeben</button>`;
     $("#f-tan").onclick=()=>{
       const fast=$("#f-e").checked;
-      balance=Math.round((balance-b)*100)/100;$("#bal").textContent=eur(balance);
+      balance=Math.round((balance-b)*100)/100;
       TX.unshift([fast?"Echtzeitüberweisung":"Überweisung",$("#f-n").value.trim(),$("#f-v").value.trim()||"ohne Verwendungszweck",-b,"ueb"]);
-      $("#txCount").textContent=TX.length;
+      refreshHead();
       out.innerHTML=`<div class="ok-msg">Überweisung ausgeführt ✓ Neuer Kontostand: ${eur(balance)}.<br>Das Geld ist ${fast?"in etwa 10 Sekunden":"spätestens am nächsten Bankarbeitstag"} beim Empfänger. Schaut unter „Umsätze“ nach: Dort steht die Überweisung jetzt ganz oben.</div><div class="err">Achtung: Zurückholen kann die Bank das Geld meist nur, wenn der Empfänger zustimmt.</div>${fast?"":`<div class="info-msg">Probiert jetzt noch eine Überweisung mit Haken bei „Echtzeitüberweisung“.</div>`}`;unlock("ueb");};
   };
 }
 function tabUms(){
   const a=$("#appBody");
-  a.innerHTML=`<div class="info-msg" style="font-size:.92rem">Hier seht ihr alle Buchungen auf Jonas' Konto, die neueste steht oben. Rot = Geld geht weg, grün = Geld kommt dazu. Findet die Buchung, bei der sich jemand jeden Monat Geld holt, und tippt darauf.</div>`+TX.map((t,i)=>`<button class="tx" data-i="${i}"><span><b>${t[1]}</b><small>${t[0]} · ${t[2]}</small></span><span class="${t[3]<0?"neg":"pos"}">${t[3]<0?"−":"+"}${eur(Math.abs(t[3]))}</span></button>`).join("")+`<div id="txd" style="display:grid;gap:.5rem"></div>`;
-  a.querySelectorAll(".tx").forEach(b=>b.onclick=()=>{const t=TX[+b.dataset.i];const d=$("#txd");
-    if(t[4]==="gut"){d.innerHTML=err("Das ist eine Gutschrift: Hier kommt Geld dazu. Sucht eine Buchung, bei der „Lastschrift“ steht.");return;}
-    if(t[4]==="karte"){d.innerHTML=err("Das ist eine Kartenzahlung beim Bäcker. Sucht eine Buchung, bei der „Lastschrift“ steht.");return;}
-    if(t[4]==="ueb"){d.innerHTML=`<div class="info-msg"><b>${t[0]}</b> an ${t[1]} über ${eur(-t[3])}.<br>Diese Zahlung hat Jonas selbst losgeschickt. Zurückholen kann er sie nicht einfach. Sucht eine Buchung, bei der „Lastschrift“ steht.</div>`;return;}
-    d.innerHTML=`<div class="info-msg"><b>SEPA-Lastschrift</b><br>Gläubiger: FC Musterdorf e.V.<br>Gläubiger-ID: DE00ZZZ00000000000<br>Mandatsreferenz: MITGL-0815<br><br>Jonas' Eltern haben dem Verein mit ihrer Unterschrift erlaubt, den Beitrag jeden Monat abzubuchen. Jonas muss nichts selbst überweisen.</div><button id="rueck">↩️ Lastschrift zurückgeben</button><div id="rmsg" style="display:grid;gap:.5rem"></div>`;unlock("last");
-    $("#rueck").onclick=()=>{$("#rmsg").innerHTML=`<div class="ok-msg">Das geht bis zu 8 Wochen nach der Abbuchung, ohne Begründung. Das Geld kommt zurück aufs Konto.</div><div class="err">Aber: Der Beitrag ist trotzdem fällig, wenn er berechtigt war.</div>`;};});
+  const hasLast=TX.some(t=>t[4]==="last");
+  a.innerHTML=`<div class="info-msg" style="font-size:.92rem">Hier seht ihr alle Buchungen auf Jonas' Konto, die neueste steht oben. Rot = Geld geht weg, grün = Geld kommt dazu.${kontoTabs().includes("verein")&&!hasLast?" Noch gibt es keine Lastschrift: Meldet Jonas zuerst unter „⚽ Verein“ an und spult einen Monat vor.":""}</div>`+TX.map((t,i)=>`<button class="tx" data-i="${i}"><span><b>${t[1]}</b><small>${t[0]} · ${t[2]}</small></span><span class="${t[3]<0?"neg":"pos"}">${t[3]<0?"−":"+"}${eur(Math.abs(t[3]))}</span></button>`).join("")+`<div id="txd" style="display:grid;gap:.5rem"></div>`;
+  a.querySelectorAll(".tx").forEach(b=>b.onclick=()=>{const i=+b.dataset.i,t=TX[i];const d=$("#txd");
+    if(t[4]==="gut"||t[4]==="rueck"){d.innerHTML=`<div class="info-msg">Das ist eine Gutschrift: Hier kommt Geld dazu.</div>`;return;}
+    if(t[4]==="karte"){d.innerHTML=`<div class="info-msg">Das ist eine Kartenzahlung beim Bäcker.</div>`;return;}
+    if(t[4]==="ueb"){d.innerHTML=`<div class="info-msg"><b>${t[0]}</b> an ${t[1]} über ${eur(-t[3])}.<br>Diese Zahlung hat Jonas selbst losgeschickt. Zurückholen kann er sie nicht einfach.</div>`;return;}
+    if(t[4]==="last-zurueck"){d.innerHTML=`<div class="info-msg">Diese Lastschrift wurde schon zurückgegeben.</div>`;return;}
+    d.innerHTML=`<div class="info-msg"><b>SEPA-Lastschrift</b><br>Gläubiger: FC Musterdorf e.V.<br>Gläubiger-ID: DE00ZZZ00000000000<br>Mandatsreferenz: MITGL-0815<br><br>Der Verein hat sich das Geld selbst geholt. Das durfte er, weil Jonas' Eltern das Mandat unterschrieben haben.</div><button id="rueck">↩️ Lastschrift zurückgeben</button><div id="rmsg" style="display:grid;gap:.5rem"></div>`;
+    $("#rueck").onclick=()=>{t[4]="last-zurueck";balance=Math.round((balance+12)*100)/100;TX.unshift(["Rückbuchung","FC Musterdorf e.V.","Lastschrift zurückgegeben",12,"rueck"]);refreshHead();tabUms();
+      $("#txd").innerHTML=`<div class="ok-msg">Zurückgegeben ✓ Die 12,00 € sind wieder auf Jonas' Konto. Das geht bis zu 8 Wochen nach der Abbuchung, ohne Begründung.</div><div class="err">Aber: Der Beitrag ist trotzdem fällig, wenn er berechtigt war. Der Verein wird sich melden.</div>`;};});
 }
 
 /* ---------- Station Online ---------- */
