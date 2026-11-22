@@ -1,0 +1,33 @@
+name: Sprachaufnahmen laden
+on:
+  push:
+    paths: ["audio/urls.txt"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ffmpeg bereitstellen
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: Aufnahmen herunterladen und verkleinern
+        run: |
+          set -e
+          while read -r name url; do
+            [ -z "$name" ] && continue
+            [ -f "audio/$name.mp3" ] && continue
+            curl -sSfL "$url" -o "/tmp/$name.mp3"
+            ffmpeg -loglevel error -y -i "/tmp/$name.mp3" \
+              -af "silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse" \
+              -ac 1 -ar 22050 -b:a 48k "audio/$name.mp3"
+            echo "geladen: $name"
+          done < audio/urls.txt
+      - name: Einchecken
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add audio/*.mp3
+          git diff --cached --quiet || git commit -m "Sprachaufnahmen (ElevenLabs) für die Bezahl-Werkstatt"
+          git push
