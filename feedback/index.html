@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feedback · Zahlungsarten</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--mut:#5b6476;--pri:#2f6fed;--pri2:#e8f0ff;--ok:#1f9d55;--line:#dde3ee;--warn:#c2410c}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:24px 18px 60px}
+h1{font-size:28px;margin:6px 0 4px}
+.sub{color:var(--mut);font-size:18px;margin:0 0 20px;line-height:1.4}
+.q{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 18px 20px;margin:0 0 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.q h2{font-size:21px;margin:0 0 14px;line-height:1.35;font-weight:650}
+.q h2 .n{display:inline-block;min-width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%;background:var(--pri2);color:var(--pri);font-size:16px;margin-right:8px}
+.opts{display:grid;gap:10px}
+.o5{grid-template-columns:repeat(5,1fr)}
+.o4{grid-template-columns:repeat(4,1fr)}
+.o3{grid-template-columns:repeat(3,1fr)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+button.opt{appearance:none;border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px 6px;font:inherit;font-size:15px;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:64px;justify-content:center;transition:transform .08s,border-color .15s,background .15s}
+button.opt .e{font-size:36px;line-height:1}
+button.opt:active{transform:scale(.96)}
+button.opt.sel{border-color:var(--pri);background:var(--pri2);font-weight:650}
+.chips button.opt{flex-direction:row;min-height:52px;padding:10px 16px;font-size:17px}
+.chips button.opt .e{font-size:24px}
+textarea{width:100%;min-height:96px;border:2px solid var(--line);border-radius:14px;padding:12px;font:inherit;font-size:18px;resize:vertical}
+textarea:focus{outline:none;border-color:var(--pri)}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.send{width:100%;border:0;border-radius:16px;background:var(--pri);color:#fff;font:inherit;font-size:22px;font-weight:700;padding:18px;cursor:pointer;margin-top:6px}
+.send:disabled{background:#9db5e8;cursor:default}
+.err{color:var(--warn);font-size:17px;margin:12px 0 0;display:none}
+.done{text-align:center;padding:60px 10px}
+.done .big{font-size:84px}
+.done h1{font-size:32px}
+.missing{border-color:#f1a37a;box-shadow:0 0 0 3px #fde3d4}
+/* Auswertung */
+.kpi{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:150px}
+.kpi b{display:block;font-size:30px}
+.kpi span{color:var(--mut);font-size:14px}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:150px 1fr 36px;align-items:center;gap:10px;font-size:15px}
+.bar .t{height:22px;background:#eef1f7;border-radius:6px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--pri);border-radius:6px}
+.avg{font-size:15px;color:var(--mut);margin:0 0 10px}
+.avg b{color:var(--ink);font-size:19px}
+ul.cm{margin:0;padding-left:20px}
+ul.cm li{margin:0 0 8px;font-size:17px;line-height:1.4}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+.tools button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font:inherit;font-size:15px;cursor:pointer}
+.status{font-size:14px;color:var(--mut);margin:0 0 14px}
+@media (max-width:520px){.o5 button.opt .l{display:none}.bar{grid-template-columns:110px 1fr 30px}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* Antworten laufen anonym über ntfy.sh (kein Konto nötig, Nachrichten werden dort ca. 12 Stunden gespeichert). */
+const TOPIC="obdb-ws7-fb-q8k27xv4mz";
+const BASE="https://ntfy.sh/"+TOPIC;
+const app=document.getElementById("app");
+
+const Q=[
+ {id:"gefallen",type:"scale",cls:"o5",title:"Wie hat dir die Doppelstunde gefallen?",
+  opts:[["😞","gar nicht"],["🙁","nicht so"],["😐","geht so"],["🙂","gut"],["😄","super"]]},
+ {id:"werkstatt",type:"scale",cls:"o4",title:"Die Bezahl-Werkstatt auf dem Tablet hat mir beim Lernen geholfen.",
+  opts:[["👎","stimmt nicht"],["🤏","eher nicht"],["👍","eher ja"],["💯","stimmt genau"]]},
+ {id:"gruppe",type:"scale",cls:"o4",title:"In meiner Gruppe haben wir gut zusammengearbeitet.",
+  opts:[["👎","stimmt nicht"],["🤏","eher nicht"],["👍","eher ja"],["💯","stimmt genau"]]},
+ {id:"verstanden",type:"scale",cls:"o4",title:"Ich kann jetzt erklären, welche Zahlungsart wann passt.",
+  opts:[["👎","stimmt nicht"],["🤏","eher nicht"],["👍","eher ja"],["💯","stimmt genau"]]},
+ {id:"tempo",type:"scale",cls:"o3",title:"Das Tempo war …",
+  opts:[["🐢","zu langsam"],["👌","genau richtig"],["🚀","zu schnell"]]},
+ {id:"best",type:"multi",title:"Was hat dir am meisten Spaß gemacht?",hint:"Du kannst mehrere antippen.",
+  opts:[["💬","Jonas im Chat"],["🛒","Bezahlstation ausprobieren"],["📖","Infotext lesen"],["🧩","Geldweg bauen"],["🎤","Präsentieren"],["📝","Arbeitsblatt"]]},
+ {id:"tipp",type:"text",title:"Was kann ich beim nächsten Mal besser machen?",hint:"Freiwillig. Bitte keine Namen."}
+];
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+
+/* ---------- Schülerseite ---------- */
+function student(){
+  const ans={best:[]};
+  if(ls("fb_sent_"+TOPIC)&&Date.now()-Number(ls("fb_sent_"+TOPIC))<6*3600e3){return thanks(true);}
+  let h=`<h1>Dein Feedback 💬</h1><p class="sub">Zur Stunde „Zahlungsarten – Jonas und die AirPods“.<br>Es ist <b>anonym</b>. Ehrlich sein hilft mir am meisten!</p>`;
+  Q.forEach((q,i)=>{
+    h+=`<section class="q" id="q_${q.id}"><h2><span class="n">${i+1}</span>${esc(q.title)}</h2>`;
+    if(q.type==="text"){h+=`<textarea id="t_${q.id}" maxlength="400" placeholder="Hier schreiben …"></textarea>`;}
+    else{
+      h+=`<div class="${q.type==="multi"?"chips":"opts "+q.cls}">`;
+      q.opts.forEach((o,k)=>{h+=`<button class="opt" data-q="${q.id}" data-k="${k}"><span class="e">${o[0]}</span><span class="l">${esc(o[1])}</span></button>`;});
+      h+=`</div>`;
+    }
+    if(q.hint)h+=`<p class="hint">${esc(q.hint)}</p>`;
+    h+=`</section>`;
+  });
+  h+=`<button class="send" id="send">Abschicken ✔</button><p class="err" id="err"></p>`;
+  app.innerHTML=h;
+  app.querySelectorAll("button.opt").forEach(b=>b.addEventListener("click",()=>{
+    const q=Q.find(x=>x.id===b.dataset.q),k=Number(b.dataset.k);
+    document.getElementById("q_"+q.id).classList.remove("missing");
+    if(q.type==="multi"){
+      const i=ans.best.indexOf(k); if(i<0)ans.best.push(k); else ans.best.splice(i,1);
+      b.classList.toggle("sel");
+    }else{
+      ans[q.id]=k;
+      app.querySelectorAll(`button.opt[data-q="${q.id}"]`).forEach(x=>x.classList.toggle("sel",x===b));
+    }
+  }));
+  document.getElementById("send").addEventListener("click",async()=>{
+    const err=document.getElementById("err");err.style.display="none";
+    const miss=Q.filter(q=>q.type==="scale"&&ans[q.id]===undefined);
+    if(miss.length){
+      miss.forEach(q=>document.getElementById("q_"+q.id).classList.add("missing"));
+      document.getElementById("q_"+miss[0].id).scrollIntoView({behavior:"smooth",block:"center"});
+      err.textContent="Bitte beantworte noch die orange markierten Fragen.";err.style.display="block";return;
+    }
+    const payload={v:1,id:Math.random().toString(36).slice(2,10),t:Date.now(),
+      gefallen:ans.gefallen,werkstatt:ans.werkstatt,gruppe:ans.gruppe,verstanden:ans.verstanden,tempo:ans.tempo,
+      best:ans.best.slice().sort(),tipp:(document.getElementById("t_tipp").value||"").trim().slice(0,400)};
+    const btn=document.getElementById("send");btn.disabled=true;btn.textContent="Wird gesendet …";
+    try{
+      const r=await fetch(BASE,{method:"POST",body:JSON.stringify(payload)});
+      if(!r.ok)throw new Error(r.status);
+      ls("fb_sent_"+TOPIC,String(Date.now()));
+      thanks(false);
+    }catch(e){
+      btn.disabled=false;btn.textContent="Nochmal senden ✔";
+      err.textContent="Das hat nicht geklappt. Prüfe das WLAN und tippe nochmal auf „Senden“.";err.style.display="block";
+    }
+  });
+}
+function thanks(already){
+  app.innerHTML=`<div class="done"><div class="big">🎉</div><h1>Danke für dein Feedback!</h1><p class="sub">${already?"Du hast schon abgeschickt.":"Deine Antworten sind angekommen."} Du kannst das Tablet jetzt weglegen.</p></div>`;
+}
+
+/* ---------- Auswertung (#auswertung) ---------- */
+let store={};
+function loadStore(){try{store=JSON.parse(ls("fb_store_"+TOPIC)||"{}")||{};}catch(e){store={};}}
+function saveStore(){ls("fb_store_"+TOPIC,JSON.stringify(store));}
+async function poll(){
+  const st=document.getElementById("status");
+  try{
+    const r=await fetch(BASE+"/json?poll=1&since=all");
+    const txt=await r.text();
+    txt.split("\n").forEach(line=>{
+      if(!line.trim())return;
+      try{const m=JSON.parse(line);if(m.event!=="message")return;const p=JSON.parse(m.message);
+        if(p&&p.v===1&&p.id)store[p.id]=p;}catch(e){}
+    });
+    saveStore();
+    st.textContent="Zuletzt aktualisiert: "+new Date().toLocaleTimeString("de-DE")+" · aktualisiert sich alle 10 Sekunden";
+  }catch(e){st.textContent="Keine Verbindung zum Server – gezeigt werden die zuletzt gespeicherten Antworten.";}
+  render();
+}
+function render(){
+  const all=Object.values(store).filter(p=>!window.__since||p.t>=window.__since).sort((a,b)=>a.t-b.t);
+  const n=all.length;
+  let h=`<div class="kpi"><div><b>${n}</b><span>Antworten</span></div>`;
+  const mean=id=>n?all.reduce((s,p)=>s+p[id],0)/n:0;
+  h+=`<div><b>${n?(mean("gefallen")+1).toFixed(1):"–"}</b><span>Gefallen (1–5)</span></div>`;
+  h+=`<div><b>${n?(mean("verstanden")+1).toFixed(1):"–"}</b><span>Verstanden (1–4)</span></div></div>`;
+  Q.forEach((q,i)=>{
+    h+=`<section class="q"><h2><span class="n">${i+1}</span>${esc(q.title)}</h2>`;
+    if(q.type==="text"){
+      const c=all.filter(p=>p.tipp);
+      h+=c.length?`<ul class="cm">${c.map(p=>`<li>${esc(p.tipp)}</li>`).join("")}</ul>`:`<p class="hint">Noch keine Tipps.</p>`;
+    }else{
+      const cnt=q.opts.map(()=>0);
+      all.forEach(p=>{if(q.type==="multi")(p.best||[]).forEach(k=>{if(cnt[k]!==undefined)cnt[k]++;});else if(cnt[p[q.id]]!==undefined)cnt[p[q.id]]++;});
+      const max=Math.max(1,...cnt);
+      if(q.type==="scale"&&q.id!=="tempo"&&n)h+=`<p class="avg">Mittelwert: <b>${(mean(q.id)+1).toFixed(1)}</b> von ${q.opts.length}</p>`;
+      h+=`<div class="bars">${q.opts.map((o,k)=>`<div class="bar"><span>${o[0]} ${esc(o[1])}</span><span class="t"><i style="width:${cnt[k]/max*100}%"></i></span><b>${cnt[k]}</b></div>`).join("")}</div>`;
+    }
+    h+=`</section>`;
+  });
+  document.getElementById("res").innerHTML=h;
+}
+function csv(){
+  const all=Object.values(store).sort((a,b)=>a.t-b.t);
+  const rows=[["Zeit","Gefallen (1-5)","Werkstatt (1-4)","Gruppe (1-4)","Verstanden (1-4)","Tempo","Am meisten Spaß","Tipp"]];
+  all.forEach(p=>rows.push([new Date(p.t).toLocaleString("de-DE"),p.gefallen+1,p.werkstatt+1,p.gruppe+1,p.verstanden+1,Q[4].opts[p.tempo]?.[1]||"",(p.best||[]).map(k=>Q[5].opts[k]?.[1]).join(", "),p.tipp||""]));
+  const s="﻿"+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([s],{type:"text/csv;charset=utf-8"}));
+  a.download="Feedback_Zahlungsarten.csv";document.body.appendChild(a);a.click();a.remove();
+}
+function teacher(){
+  loadStore();
+  app.innerHTML=`<h1>Auswertung · Feedback</h1><p class="sub">Die Antworten kommen live herein. Auf dem Server bleiben sie ca. 12 Stunden, in diesem Browser bleiben sie gespeichert. Sichere sie am besten als CSV.</p>
+  <div class="tools"><button id="b_reload">🔄 Jetzt aktualisieren</button><button id="b_csv">💾 Als CSV speichern (Excel)</button><button id="b_new">🆕 Nur Antworten ab jetzt zeigen</button><button id="b_all">Alle zeigen</button></div>
+  <p class="status" id="status">Lade …</p><div id="res"></div>`;
+  document.getElementById("b_reload").onclick=poll;
+  document.getElementById("b_csv").onclick=csv;
+  document.getElementById("b_new").onclick=()=>{window.__since=Date.now();render();};
+  document.getElementById("b_all").onclick=()=>{window.__since=0;render();};
+  render();poll();setInterval(poll,10000);
+}
+
+(location.hash==="#auswertung"?teacher:student)();
+window.addEventListener("hashchange",()=>location.reload());
+</script>
+</body>
+</html>
